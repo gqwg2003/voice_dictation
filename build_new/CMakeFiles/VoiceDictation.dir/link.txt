@@ -1,0 +1,3 @@
+"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\VoiceDictation.dir/objects.a
+C:\Qt\Tools\mingw1310_64\bin\ar.exe qc CMakeFiles\VoiceDictation.dir/objects.a @CMakeFiles\VoiceDictation.dir\objects1.rsp
+C:\Qt\Tools\mingw1310_64\bin\c++.exe -mwindows -Wl,--whole-archive CMakeFiles\VoiceDictation.dir/objects.a -Wl,--no-whole-archive -o VoiceDictation.exe -Wl,--out-implib,libVoiceDictation.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\VoiceDictation.dir\linkLibs.rsp

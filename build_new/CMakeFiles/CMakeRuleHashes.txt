@@ -1,0 +1,4 @@
+# Hashes of file build rules.
+e3415e4e0f8ad77ee1a579e7c8d681d7 CMakeFiles/VoiceDictation_autogen
+02970262343ac5dcdda5597d372a6cc2 VoiceDictation_autogen/3YJK5W5UP7/qrc_resources.cpp
+036e48b9901d31a84f273d8eecd2fc0f VoiceDictation_autogen/timestamp

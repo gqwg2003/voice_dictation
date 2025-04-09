@@ -1,0 +1,15 @@
+D:/voice multilingual/build_new/CMakeFiles/VoiceDictation.dir
+D:/voice multilingual/build_new/CMakeFiles/edit_cache.dir
+D:/voice multilingual/build_new/CMakeFiles/rebuild_cache.dir
+D:/voice multilingual/build_new/CMakeFiles/list_install_components.dir
+D:/voice multilingual/build_new/CMakeFiles/install.dir
+D:/voice multilingual/build_new/CMakeFiles/install/local.dir
+D:/voice multilingual/build_new/CMakeFiles/install/strip.dir
+D:/voice multilingual/build_new/CMakeFiles/VoiceDictation_autogen_timestamp_deps.dir
+D:/voice multilingual/build_new/CMakeFiles/VoiceDictation_autogen.dir
+D:/voice multilingual/build_new/_deps/json-build/CMakeFiles/edit_cache.dir
+D:/voice multilingual/build_new/_deps/json-build/CMakeFiles/rebuild_cache.dir
+D:/voice multilingual/build_new/_deps/json-build/CMakeFiles/list_install_components.dir
+D:/voice multilingual/build_new/_deps/json-build/CMakeFiles/install.dir
+D:/voice multilingual/build_new/_deps/json-build/CMakeFiles/install/local.dir
+D:/voice multilingual/build_new/_deps/json-build/CMakeFiles/install/strip.dir

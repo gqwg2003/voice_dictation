@@ -13,12 +13,26 @@
 - Улучшенная безопасность и защита данных
 
 ### 🚀 Установка и запуск
+
+#### Для пользователей Windows:
+```
+# Запустите скрипт для сборки и запуска приложения
+run_app.bat
+```
+
+#### Сборка из исходного кода:
 ```bash
-# Установка зависимостей
-pip install -r requirements.txt
+# Создание директории для сборки
+mkdir build && cd build
+
+# Генерация проекта с помощью CMake
+cmake ..
+
+# Сборка проекта
+cmake --build .
 
 # Запуск приложения
-python main.py
+./VoiceDictation
 ```
 
 ### 📝 Использование
@@ -33,6 +47,11 @@ python main.py
 
 ### 🔒 Безопасность
 - Информация о безопасности доступна в файле [SECURITY.md](SECURITY.md).
+
+### 📋 Зависимости
+- Qt 6 (Core, Widgets, Multimedia)
+- nlohmann-json
+- C++17 совместимый компилятор
 
 ### 📄 Лицензия
 MIT
@@ -52,12 +71,26 @@ A multilingual application for voice recognition and quick text input. Perfect f
 - Enhanced security and data protection
 
 ### 🚀 Installation and Launch
-```bash
-# Install dependencies
-pip install -r requirements.txt
 
-# Run application
-python main.py
+#### For Windows users:
+```
+# Run the script to build and launch the application
+run_app.bat
+```
+
+#### Building from source:
+```bash
+# Create build directory
+mkdir build && cd build
+
+# Generate project with CMake
+cmake ..
+
+# Build the project
+cmake --build .
+
+# Run the application
+./VoiceDictation
 ```
 
 ### 📝 Usage
@@ -72,6 +105,11 @@ The application supports several operation modes with different performance leve
 
 ### 🔒 Security
 - Security information is available in the [SECURITY.md](SECURITY.md) file.
+
+### 📋 Dependencies
+- Qt 6 (Core, Widgets, Multimedia)
+- nlohmann-json
+- C++17 compatible compiler
 
 ### 📄 License
 MIT
