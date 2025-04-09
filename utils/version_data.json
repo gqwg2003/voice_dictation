@@ -1,12 +1,12 @@
 {
-  "version": "v2.8.7-8583d29",
-  "display_version": "v2.8.7-8583d29",
+  "version": "v2.8.7-d339c0b",
+  "display_version": "v2.8.7-d339c0b",
   "is_prerelease": true,
-  "updated_at": "2025-04-09T04:14:33.602470",
-  "build_number": 139,
+  "updated_at": "2025-04-09T04:24:18.915284",
+  "build_number": 145,
   "app_info": {
-    "version": "v2.8.7-8583d29",
-    "version_full": "v2.8.7-8583d29",
+    "version": "v2.8.7-d339c0b",
+    "version_full": "v2.8.7-d339c0b",
     "is_prerelease": true,
     "name": "\u0413\u043e\u043b\u043e\u0441\u043e\u0432\u043e\u0439 \u0412\u0432\u043e\u0434",
     "copyright": "\u00a9 2025",
