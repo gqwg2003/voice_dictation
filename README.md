@@ -11,11 +11,14 @@
 - Мгновенный доступ к тексту через буфер обмена
 - Ненавязчивая работа в фоновом режиме через системный трей
 - Улучшенная безопасность и защита данных
+- **Чистая гибридная архитектура:** автоматическое переключение между C++ и Python компонентами
+- **Адаптивная производительность:** оптимальная работа на различных устройствах
 - Чистая Python-реализация без внешних нативных зависимостей
 
 ### 📋 Технические требования
 - Python 3.6 или новее
 - Основные зависимости: PyQt6, SpeechRecognition, pyaudio, pyperclip, pynput
+- **Опционально:** CMake и компилятор C++ для сборки расширений (повышает производительность)
 
 ### 🚀 Установка и запуск
 ```bash
@@ -72,11 +75,14 @@ A multilingual application for voice recognition and quick text input. Perfect f
 - Instant access to text via clipboard
 - Unobtrusive background operation via system tray
 - Enhanced security and data protection
+- **Pure hybrid architecture:** automatic switching between C++ and Python components
+- **Adaptive performance:** optimal operation on various devices
 - Pure Python implementation without external native dependencies
 
 ### 📋 Technical Requirements
 - Python 3.6 or newer
 - Main dependencies: PyQt6, SpeechRecognition, pyaudio, pyperclip, pynput
+- **Optional:** CMake and C++ compiler for building extensions (increases performance)
 
 ### 🚀 Installation and Launch
 ```bash
@@ -118,4 +124,16 @@ The project uses [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 - A detailed security guide for users and developers can be found in [SECURITY_GUIDE.md](SECURITY_GUIDE.md).
 
 ### 📄 License
-MIT 
+MIT
+
+### 🧰 Operation Modes
+The application supports several operation modes:
+
+| Mode | Description | Performance |
+|------|-------------|-------------|
+| **Full hybrid** | All C++ components available | Maximum |
+| **Partial hybrid** | Some C++ components available | High |
+| **Pure Python** | Python implementations only | Medium |
+| **Light mode** | Minimal functionality for mobile devices | Basic |
+
+The application automatically determines the optimal operation mode based on available components and system characteristics. 

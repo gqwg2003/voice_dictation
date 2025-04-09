@@ -50,9 +50,13 @@ logger.addHandler(file_handler)
 class MainWindow(QMainWindow):
     """Main application window."""
     
-    def __init__(self):
+    def __init__(self, hybrid_mode_info=None, parent=None):
         """Initialize the main window and all its components."""
-        super().__init__()
+        super().__init__(parent)
+        
+        # Сохраняем информацию о режиме работы
+        self.hybrid_mode_info = hybrid_mode_info or {}
+        self.mode = self.hybrid_mode_info.get('mode', 'pure_python')
         
         # Initialize core components
         self._init_core_components()
@@ -61,13 +65,13 @@ class MainWindow(QMainWindow):
         self.settings = QSettings("VoiceApp", "VoiceDictation")
         
         # Setup UI
-        self.setup_ui()
+        self._init_ui()
         
         # Connect signals
         self.connect_signals()
         
         # Load settings
-        self.load_settings()
+        self._load_settings()
         
         # Apply theme
         self.apply_theme()
@@ -75,6 +79,9 @@ class MainWindow(QMainWindow):
         # Start hotkey listener
         logger.debug("Starting hotkey listener...")
         self.hotkey_manager.start_listening()
+        
+        # Обновляем информацию о производительности в интерфейсе
+        self._update_performance_info()
     
     # ==== INITIALIZATION METHODS ====
     def _init_core_components(self):
@@ -105,7 +112,7 @@ class MainWindow(QMainWindow):
             # Return empty icon as fallback
             return QIcon()
     
-    def setup_ui(self):
+    def _init_ui(self):
         """Set up the user interface components."""
         # Get app info
         app_info = get_runtime_app_info()
@@ -412,7 +419,7 @@ class MainWindow(QMainWindow):
         """Show settings dialog."""
         dialog = SettingsDialog(self.settings, self.hotkey_manager, self)
         if dialog.exec():
-            self.load_settings()
+            self._load_settings()
             # Apply recognition settings immediately in case they were changed
             self.apply_recognition_settings()
     
@@ -482,7 +489,7 @@ class MainWindow(QMainWindow):
         else:
             QApplication.instance().setStyleSheet(LIGHT_THEME)
     
-    def load_settings(self):
+    def _load_settings(self):
         """Load application settings."""
         # Load window geometry
         geometry = self.settings.value("geometry")
@@ -737,4 +744,45 @@ class MainWindow(QMainWindow):
             if hasattr(self, 'tray_icon') and self.tray_icon is not None:
                 self.tray_icon.hide()
             
-            event.accept() 
+            event.accept()
+    
+    def _update_performance_info(self):
+        """Обновляет информацию о режиме работы и производительности в интерфейсе."""
+        if not hasattr(self, 'status_bar') or not self.hybrid_mode_info:
+            return
+            
+        mode = self.hybrid_mode_info.get('mode', 'unknown')
+        perf_level = self.hybrid_mode_info.get('performance_level', 0)
+        
+        # Добавляем информацию о режиме в статус-бар
+        mode_label = self.status_bar.findChild(QLabel, "mode_label")
+        if not mode_label:
+            mode_label = QLabel()
+            mode_label.setObjectName("mode_label")
+            self.status_bar.addPermanentWidget(mode_label)
+            
+        # Форматируем сообщение о режиме
+        mode_names = {
+            'hybrid_full': 'Полный гибридный режим',
+            'hybrid_partial': 'Частичный гибридный режим',
+            'pure_python': 'Чистый Python',
+            'light': 'Легкий режим'
+        }
+        
+        mode_text = mode_names.get(mode, f"Режим: {mode}")
+        perf_icons = ['⚠️', '▪', '▪▪', '▪▪▪', '▪▪▪▪', '▪▪▪▪▪']
+        perf_icon = perf_icons[min(perf_level, 5)]
+        
+        mode_label.setText(f"{mode_text} | Производительность: {perf_icon}")
+        
+        # Устанавливаем подсказку с деталями
+        extensions = [k for k, v in self.hybrid_mode_info.get('extensions_available', {}).items() if v]
+        system_info = self.hybrid_mode_info.get('system_info', {})
+        
+        tooltip = f"Режим: {mode_text}\n"
+        tooltip += f"Уровень производительности: {perf_level}/5\n"
+        tooltip += f"Доступные расширения: {', '.join(extensions) if extensions else 'нет'}\n"
+        tooltip += f"ОС: {system_info.get('os', 'неизвестно')}\n"
+        tooltip += f"Python: {system_info.get('python_version', 'неизвестно')}"
+        
+        mode_label.setToolTip(tooltip) 

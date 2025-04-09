@@ -21,20 +21,8 @@ import speech_recognition as sr
 import numpy as np
 from PyQt6.QtCore import QThread, pyqtSignal
 
-# Add C++ extensions directory to Python path
-current_dir = os.path.dirname(os.path.abspath(__file__))
-cpp_extensions_dir = os.path.join(current_dir, 'cpp_extensions', 'build', 'Release')
-if cpp_extensions_dir not in sys.path:
-    sys.path.append(cpp_extensions_dir)
-
-# C++ extensions
-try:
-    from audio_processor import AudioProcessor
-    from text_processor import TextProcessor
-except ImportError as e:
-    logging.error(f"Failed to import C++ extensions: {e}")
-    AudioProcessor = None
-    TextProcessor = None
+# Project imports
+from core.hybrid_manager import get_audio_processor, get_text_processor
 
 # Configure logging
 logging.basicConfig(
@@ -295,9 +283,9 @@ class SpeechRecognizer(QThread):
                 )
                 
                 # Apply post-processing if C++ extensions are available
-                if TextProcessor is not None:
+                if get_text_processor() is not None:
                     try:
-                        text = TextProcessor.process(text, self.custom_terms.get(self.language, []))
+                        text = get_text_processor().process(text, self.custom_terms.get(self.language, []))
                     except Exception as e:
                         logger.warning(f"Text processing failed: {e}")
                 
@@ -348,7 +336,7 @@ class SpeechRecognizer(QThread):
         """Monitor audio levels and emit signals using C++ extension."""
         try:
             # Check if C++ extension is available
-            if AudioProcessor is None:
+            if get_audio_processor() is None:
                 logger.error("AudioProcessor C++ extension is not available")
                 return
                 
@@ -358,7 +346,7 @@ class SpeechRecognizer(QThread):
                         audio = self.recognizer.listen(s, timeout=0.1, phrase_time_limit=0.1)
                         if audio:
                             # Use C++ extension to calculate audio level
-                            level = AudioProcessor.calculate_level(audio.get_raw_data())
+                            level = get_audio_processor().calculate_level(audio.get_raw_data())
                             self.audio_level.emit(level)
                 except sr.WaitTimeoutError:
                     # Expected when no audio is detected

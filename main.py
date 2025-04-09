@@ -24,6 +24,7 @@ from PyQt6.QtWidgets import QApplication
 from utils.logger import setup_logger
 from utils.version import get_version
 from utils.version_updater import update_version, get_runtime_version, get_runtime_app_info
+from core.hybrid_manager import hybrid_manager
 from gui.main_window import MainWindow
 
 # ==== SIGNAL HANDLING ====
@@ -73,6 +74,12 @@ def main():
     logger = setup_logger(level=logging.INFO)
     logger.info(f"Starting Voice Dictation Application v{app_version}")
     
+    # Initialize hybrid mode
+    hybrid_mode = hybrid_manager.get_optimal_mode()
+    mode_info = hybrid_manager.get_mode_info()
+    logger.info(f"Running in {hybrid_mode} mode with performance level {mode_info['performance_level']}")
+    logger.info(f"C++ extensions available: {', '.join([k for k, v in mode_info['extensions_available'].items() if v])}")
+    
     # Register signal handlers for graceful shutdown
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
@@ -85,7 +92,7 @@ def main():
     app.setStyle('Fusion')  # Using Fusion style for a more professional look
     
     # Create and show main window
-    window = MainWindow()
+    window = MainWindow(hybrid_mode_info=mode_info)
     window.show()
     
     # Start application event loop
