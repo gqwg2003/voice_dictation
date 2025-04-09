@@ -8,7 +8,16 @@
       <FullPath>D:\voice multilingual\core\cpp_extensions\build\Release\audio_processor.pyd</FullPath>
     </ProjectOutput>
     <ProjectOutput>
+      <FullPath>D:\voice multilingual\core\cpp_extensions\build\Release\clipboard_manager.pyd</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>D:\voice multilingual\core\cpp_extensions\build\Release\hotkey_manager.pyd</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
       <FullPath>D:\voice multilingual\core\cpp_extensions\build\Release\speech_preprocessor.pyd</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>D:\voice multilingual\core\cpp_extensions\build\Release\speech_recognizer.pyd</FullPath>
     </ProjectOutput>
     <ProjectOutput>
       <FullPath>D:\voice multilingual\core\cpp_extensions\build\Release\text_processor.pyd</FullPath>

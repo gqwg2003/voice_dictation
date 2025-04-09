@@ -1,5 +1,8 @@
 D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/audio_processor.dir
 D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/text_processor.dir
 D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/speech_preprocessor.dir
+D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/speech_recognizer.dir
+D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/hotkey_manager.dir
+D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/clipboard_manager.dir
 D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/ALL_BUILD.dir
 D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/ZERO_CHECK.dir

@@ -80,7 +80,7 @@ CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO:STRING=/debug /INCREMENTAL
 CMAKE_FIND_PACKAGE_REDIRECTS_DIR:STATIC=D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/pkgRedirects
 
 //Install path prefix, prepended onto install directories.
-CMAKE_INSTALL_PREFIX:PATH=C:/Program Files (x86)/voice_dictation_cpp
+CMAKE_INSTALL_PREFIX:PATH=C:/Program Files/voice_dictation_cpp
 
 //Path to a program.
 CMAKE_LINKER:FILEPATH=C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.43.34808/bin/Hostx64/x64/link.exe
@@ -264,7 +264,7 @@ CMAKE_GENERATOR:INTERNAL=Visual Studio 17 2022
 //Generator instance identifier.
 CMAKE_GENERATOR_INSTANCE:INTERNAL=C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools
 //Name of generator platform.
-CMAKE_GENERATOR_PLATFORM:INTERNAL=
+CMAKE_GENERATOR_PLATFORM:INTERNAL=x64
 //Name of generator toolset.
 CMAKE_GENERATOR_TOOLSET:INTERNAL=
 //Source directory with the top level CMakeLists.txt file for this
@@ -356,8 +356,6 @@ _Python_INCLUDE_DIR:INTERNAL=C:/Users/Gbog Masters/AppData/Local/Programs/Python
 //Python Properties
 _Python_INTERPRETER_PROPERTIES:INTERNAL=Python;3;13;2;64;<none>;cp313-win_amd64;;C:\Users\Gbog Masters\AppData\Local\Programs\Python\Python313\Lib;C:\Users\Gbog Masters\AppData\Local\Programs\Python\Python313\Lib;C:\Users\Gbog Masters\AppData\Local\Programs\Python\Python313\Lib\site-packages;C:\Users\Gbog Masters\AppData\Local\Programs\Python\Python313\Lib\site-packages
 _Python_INTERPRETER_SIGNATURE:INTERNAL=865b22fe857b77c6c08acc4df6f97480
-//Interpreter reason failure
-_Python_Interpreter_REASON_FAILURE:INTERNAL=
 //Path to a library.
 _Python_LIBRARY_DEBUG:INTERNAL=_Python_LIBRARY_DEBUG-NOTFOUND
 //Path to a library.
