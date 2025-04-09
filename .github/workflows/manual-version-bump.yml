@@ -23,6 +23,11 @@ on:
         required: false
         default: 'Manual version bump'
         type: string
+      delete_old_tag:
+        description: 'Delete old version tag?'
+        required: true
+        default: true
+        type: boolean
 
 jobs:
   version-bump:
@@ -102,6 +107,18 @@ jobs:
           git add utils/version_data.json
           git commit -m "Update version data to $NEW_VERSION [skip ci]"
           
+          # Delete old tag if requested
+          if [ "${{ github.event.inputs.delete_old_tag }}" = "true" ]; then
+            CURRENT_VERSION="${{ steps.current_version.outputs.current_version }}"
+            if [[ "$CURRENT_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+              echo "Removing old tag: $CURRENT_VERSION"
+              # Delete the tag locally
+              git tag -d "$CURRENT_VERSION" || true
+              # Delete the remote tag
+              git push origin :refs/tags/"$CURRENT_VERSION" || true
+            fi
+          fi
+          
           # Create tag manually with the specified message
           COMMIT_MSG="${{ github.event.inputs.commit_message }}"
           git tag -a "$NEW_VERSION" -m "$COMMIT_MSG"
@@ -109,6 +126,8 @@ jobs:
           # Push both the commit and tag
           git push origin main
           git push origin "$NEW_VERSION"
+          
+          echo "Successfully updated version from ${{ steps.current_version.outputs.current_version }} to $NEW_VERSION"
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
