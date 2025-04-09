@@ -9,6 +9,8 @@ __pycache__/
 # Distribution / packaging
 dist/
 build/
+build_new/
+cmake-build-*/
 *.egg-info/
 
 # Virtual environments
@@ -33,4 +35,57 @@ logs/*.log
 .DS_Store
 
 # Windows
-Thumbs.db 
+Thumbs.db
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Qt specific
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+*.qm
+*.user
+*.pro.user
+*.pro.user.*
+*.qbs.user
+*.qbs.user.*
+*.moc
+*.autosave
+
+# IDE specific files
+.idea/
+.vscode/
+*.sublime-workspace
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*~
+~$* 

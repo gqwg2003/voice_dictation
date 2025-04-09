@@ -11,16 +11,11 @@
 
 // Forward declarations
 class AudioProcessor;
-class QNetworkAccessManager;
-
-// Forward declaration for Whisper
-#ifdef HAVE_WHISPER
-struct whisper_context;
-#endif
+class RecognitionService;
 
 // Speech recognition service types
 enum class RecognitionServiceType {
-    Offline,
+    Offline,  // Whisper
     Google,
     Yandex,
     Azure
@@ -45,10 +40,14 @@ public:
     void setRecognitionService(RecognitionServiceType service);
     void setApiKey(const QString& apiKey);
     void setUseSharedApiKey(bool useShared);
+    void setUsePublicApi(bool usePublic);
+    void setAzureRegion(const QString& region);
+    
+    // State getters
     RecognitionServiceType getRecognitionService() const;
     bool isUsingSharedApiKey() const;
-    
-    // State
+    bool isUsingPublicApi() const;
+    QString getAzureRegion() const;
     bool isRunning() const;
     
     // Public method for processing audio data
@@ -78,19 +77,9 @@ private:
     // Recognition methods
     void processAudioChunk();
     QString transcribeAudio(const std::vector<float>& audioData);
-    QString transcribeOffline(const QByteArray& audioData);
     
-    // Cloud API integration
-    QString sendAudioToCloudAPI(const QString& audioFilePath);
-    QString sendToGoogleSpeechAPI(const QString& audioFilePath);
-    QString sendToYandexSpeechKit(const QString& audioFilePath);
-    QString sendToAzureSpeechService(const QString& audioFilePath);
-    
-    // Get API key (personal or shared)
-    QString getActiveApiKey(RecognitionServiceType service) const;
-    
-    // Model management
-    void loadLanguageModel();
+    // Service management
+    void createRecognitionService();
     
     // Internal helpers
     void initialize();
@@ -100,22 +89,17 @@ private:
     // Dependencies
     AudioProcessor* m_audioProcessor;
     
+    // Recognition service
+    std::unique_ptr<RecognitionService> m_recognitionService;
+    
     // State
     std::atomic<bool> m_isRunning;
     QString m_languageCode;
-    RecognitionServiceType m_recognitionService;
+    RecognitionServiceType m_recognitionServiceType;
     QString m_apiKey;
     bool m_useSharedApiKey;
-    
-    // Network for cloud API
-    QNetworkAccessManager* m_networkManager;
-    
-    // Speech recognition model
-#ifdef HAVE_WHISPER
-    whisper_context* m_whisperContext;
-#else
-    void* m_whisperContext; // Placeholder when Whisper is not available
-#endif
+    bool m_usePublicApi;
+    QString m_azureRegion;
     
     // Threading
     std::unique_ptr<RecognitionThread> m_recognitionThread;

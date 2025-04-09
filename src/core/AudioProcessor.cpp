@@ -15,7 +15,8 @@ AudioProcessor::AudioProcessor(QObject* parent)
       m_isRecording(false),
       m_sampleRate(DEFAULT_SAMPLE_RATE),
       m_channelCount(DEFAULT_CHANNEL_COUNT),
-      m_sampleSize(DEFAULT_SAMPLE_SIZE)
+      m_sampleSize(DEFAULT_SAMPLE_SIZE),
+      m_audioDataReady(false)
 {
     initialize();
 }
@@ -37,8 +38,9 @@ void AudioProcessor::startRecording()
     gLogger->info("Starting audio recording");
     
     try {
-        // Reset audio buffer
+        // Reset audio buffer and audio data ready flag
         m_audioBuffer.clear();
+        m_audioDataReady = false;
         
         // Create and start audio source
         m_audioSource = std::make_unique<QAudioSource>(m_audioDevice, m_audioFormat);
@@ -197,6 +199,10 @@ void AudioProcessor::processAudioInput()
                 
                 // Clear buffer after processing
                 m_audioBuffer.clear();
+                
+                // Mark that audio data is ready and notify waiters
+                m_audioDataReady = true;
+                m_audioDataCondition.notify_all();
             }
         }
         
@@ -295,4 +301,28 @@ std::vector<float> AudioProcessor::calculateAudioLevels(const std::vector<float>
     }
     
     return levels;
+}
+
+void AudioProcessor::start()
+{
+    startRecording();
+}
+
+void AudioProcessor::stop()
+{
+    stopRecording();
+}
+
+bool AudioProcessor::waitForAudioData()
+{
+    std::unique_lock<std::mutex> lock(m_audioMutex);
+    
+    // If we already have audio data ready, return immediately
+    if (m_audioDataReady) {
+        return true;
+    }
+    
+    // Wait indefinitely for condition variable to be notified
+    m_audioDataCondition.wait(lock, [this] { return m_audioDataReady.load(); });
+    return true;
 } 

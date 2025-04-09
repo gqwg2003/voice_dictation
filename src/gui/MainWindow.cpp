@@ -269,6 +269,10 @@ void MainWindow::loadSettings()
         bool useSharedApiKey = settings.value("speech/use_shared_api_key", false).toBool();
         m_speechRecognizer->setUseSharedApiKey(useSharedApiKey);
         
+        // Set public API usage
+        bool usePublicApi = settings.value("speech/use_public_api", false).toBool();
+        m_speechRecognizer->setUsePublicApi(usePublicApi);
+        
         // Set API key (used only if not using shared key)
         QString apiKey = settings.value("speech/api_key", "").toString();
         m_speechRecognizer->setApiKey(apiKey);
@@ -538,6 +542,10 @@ void MainWindow::applySettings()
         // Устанавливаем общий ключ API
         bool useSharedApiKey = settings.value("speech/use_shared_api_key", false).toBool();
         m_speechRecognizer->setUseSharedApiKey(useSharedApiKey);
+        
+        // Устанавливаем публичный API
+        bool usePublicApi = settings.value("speech/use_public_api", false).toBool();
+        m_speechRecognizer->setUsePublicApi(usePublicApi);
         
         // Устанавливаем ключ API (используется только если не используется общий ключ)
         QString apiKey = settings.value("speech/api_key", "").toString();

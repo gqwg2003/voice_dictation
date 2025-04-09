@@ -408,7 +408,7 @@ void SettingsDialog::loadSettings()
     m_logLevelComboBox->setEnabled(m_enableLoggingCheckBox->isChecked());
     
     // Public API settings
-    m_usePublicApiCheckBox->setChecked(settings.value("recognition/usePublicApi", false).toBool());
+    m_usePublicApiCheckBox->setChecked(settings.value("speech/use_public_api", false).toBool());
     m_usePublicApiCheckBox->setEnabled(recognitionService != "whisper");
 }
 
@@ -449,7 +449,7 @@ void SettingsDialog::saveSettings()
     }
     
     settings.setValue("recognition/apiKey", m_apiKeyEdit->text());
-    settings.setValue("recognition/usePublicApi", m_usePublicApiCheckBox->isChecked());
+    settings.setValue("speech/use_public_api", m_usePublicApiCheckBox->isChecked());
     
     // Сохраняем регион Azure
     settings.setValue("recognition/azureRegion", m_azureRegionEdit->text());

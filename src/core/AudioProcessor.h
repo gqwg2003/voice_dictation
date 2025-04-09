@@ -11,6 +11,7 @@
 #include <mutex>
 #include <atomic>
 #include <memory>
+#include <condition_variable>
 
 class AudioProcessor : public QObject {
     Q_OBJECT
@@ -22,6 +23,11 @@ public:
     // Control methods
     void startRecording();
     void stopRecording();
+    
+    // Speech recognizer interface methods
+    void start();  // Alias for startRecording
+    void stop();   // Alias for stopRecording
+    bool waitForAudioData(); // Wait for audio data to be ready
     
     // Data access
     std::vector<float> getAudioData();
@@ -73,6 +79,8 @@ private:
     std::vector<float> m_currentLevels;
     std::vector<float> m_processedAudioData;
     std::mutex m_audioMutex;
+    std::condition_variable m_audioDataCondition;
+    std::atomic<bool> m_audioDataReady;
     
     // Configuration
     int m_sampleRate;
