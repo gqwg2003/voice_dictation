@@ -14,7 +14,7 @@ import datetime
 from typing import Tuple, Optional
 
 # Default version to use if no version control information is available
-DEFAULT_VERSION = "v2.8.7"
+DEFAULT_VERSION = "v2.9.7"
 
 # Regular expression for SemVer validation
 SEMVER_REGEX = r"^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"

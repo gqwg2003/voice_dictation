@@ -21,7 +21,11 @@
     "HOOK",
     "API",
     "API-ключ",
-    "API-токен"
+    "API-токен",
+    "github",
+    "GitHub",
+    "Git Hub",
+    "гитхаб"
   ],
   "en-US": [
     "RESTAPI",
@@ -35,6 +39,9 @@
     "latency",
     "throughput",
     "OAuth",
-    "kubernetes"
+    "kubernetes",
+    "github",
+    "GitHub",
+    "Git Hub"
   ]
-} 
+}
