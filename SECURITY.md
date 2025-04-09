@@ -1,19 +1,20 @@
 # Политика безопасности
 
 ## О приложении
-"Голосовой Ввод" - приложение для голосового распознавания текста, которое конвертирует речь в текст с использованием передовых технологий распознавания.
+"Голосовой Ввод" - приложение для голосового распознавания текста, которое конвертирует речь в текст с использованием передовых технологий распознавания и гибридной C++/Python архитектуры для максимальной производительности.
 
 ## Поддерживаемые версии
 
 | Версия | Статус | Примечания |
 | ---------------- | --------------- | ------------------ |
-| v1.0.x            | ✅ Поддерживается | Текущая стабильная версия |
-| v0.9.x            | ✅ Поддерживается | Скоро прекратит поддержку |
-| v0.x.x-alpha, v0.x.x-beta | ⚠️ Pre-release | For testing only |
-| < v0.9.0          | ❌ Не поддерживается | Устаревшие версии |
+| v2.8.x            | ✅ Поддерживается | Текущая стабильная версия (гибридная) |
+| v2.0.x - v2.7.x   | ✅ Поддерживается | С частичными обновлениями |
+| v1.x.x            | ⚠️ Ограниченная поддержка | Только критические исправления |
+| v0.x.x-alpha, v0.x.x-beta | ⚠️ Pre-release | Только для тестирования |
+| < v1.0.0          | ❌ Не поддерживается | Устаревшие версии |
 
 > **Примечание:** Текущая версия приложения отображается в заголовке окна и статусной строке.
-> The application follows [Semantic Versioning](https://semver.org/) standard (vMAJOR.MINOR.PATCH).
+> Приложение следует стандарту [Семантического Версионирования](https://semver.org/lang/ru/) (vMAJOR.MINOR.PATCH).
 
 ## Сообщение об уязвимостях
 
@@ -21,7 +22,7 @@
 1. **Важно:** Не раскрывайте информацию об уязвимости публично
 2. Отправьте подробное описание на: **gbog.masters@gmail.com**
 3. В сообщении укажите:
-   - Версию приложения
+   - Версию приложения и режим работы (гибридный/Python)
    - Детальное описание проблемы
    - Шаги для воспроизведения
    - Потенциальные последствия
@@ -39,11 +40,13 @@
 ### Типы обрабатываемых данных
 - **Аудиозаписи:** Временно, только во время распознавания
 - **Распознанный текст:** Хранится локально в приложении
+- **Системные данные:** Информация о режиме работы и доступных компонентах
 
 ### Политика конфиденциальности
 - Мы не сохраняем ваши аудиозаписи
 - При использовании Google Speech Recognition API данные передаются согласно их политике конфиденциальности
 - Приложение не отправляет данные третьим лицам, кроме API распознавания
+- В гибридном режиме все обработки выполняются локально для максимальной конфиденциальности
 
 ## Рекомендации по безопасности
 
@@ -55,6 +58,7 @@
 5. **Микрофон:** Предоставляйте доступ к микрофону только когда это необходимо
 6. **Буфер обмена:** Очищайте буфер обмена после использования конфиденциальных данных
 7. **Логи:** Регулярно очищайте логи приложения в директории `logs/`
+8. **Режим работы:** Для максимальной безопасности используйте автономный режим (без сетевых компонентов)
 
 ### Для разработчиков
 1. **Валидация ввода:** Всегда проверяйте все входные данные
@@ -64,6 +68,7 @@
 5. **Защита кода:** Храните конфиденциальные данные в переменных окружения
 6. **Проверка прав:** Проверяйте права доступа к файлам и директориям
 7. **Санитизация вывода:** Очищайте выходные данные от потенциально опасного контента
+8. **Изоляция компонентов:** Следуйте принципу наименьших привилегий для C++ расширений
 
 ## Контактная информация
 - Email для вопросов безопасности: gbog.masters@gmail.com
@@ -74,16 +79,17 @@
 # Security Policy
 
 ## About Application
-"Voice Input" - an application for voice recognition that converts speech to text using advanced recognition technologies.
+"Voice Input" - an application for voice recognition that converts speech to text using advanced recognition technologies and hybrid C++/Python architecture for maximum performance.
 
 ## Supported Versions
 
 | Version | Status | Notes |
 | ---------------- | --------------- | ------------------ |
-| v1.0.x            | ✅ Supported | Current stable version |
-| v0.9.x            | ✅ Supported | Support ending soon |
+| v2.8.x            | ✅ Supported | Current stable version (hybrid) |
+| v2.0.x - v2.7.x   | ✅ Supported | With partial updates |
+| v1.x.x            | ⚠️ Limited support | Critical fixes only |
 | v0.x.x-alpha, v0.x.x-beta | ⚠️ Pre-release | For testing only |
-| < v0.9.0          | ❌ Not supported | Deprecated versions |
+| < v1.0.0          | ❌ Not supported | Deprecated versions |
 
 > **Note:** Current version is displayed in the window header and status bar.
 > The application follows [Semantic Versioning](https://semver.org/) standard (vMAJOR.MINOR.PATCH).
@@ -94,7 +100,7 @@
 1. **Important:** Do not disclose vulnerability information publicly
 2. Send detailed description to: **gbog.masters@gmail.com**
 3. Include in your report:
-   - Application version
+   - Application version and operation mode (hybrid/Python)
    - Detailed problem description
    - Steps to reproduce
    - Potential consequences
@@ -112,11 +118,13 @@
 ### Types of Processed Data
 - **Audio recordings:** Temporarily, only during recognition
 - **Recognized text:** Stored locally in the application
+- **System data:** Information about operation mode and available components
 
 ### Privacy Policy
 - We do not store your audio recordings
 - When using Google Speech Recognition API, data is processed according to their privacy policy
 - The application does not share data with third parties except recognition APIs
+- In hybrid mode, all processing is performed locally for maximum privacy
 
 ## Security Recommendations
 
@@ -128,6 +136,7 @@
 5. **Microphone:** Grant microphone access only when necessary
 6. **Clipboard:** Clear clipboard after using sensitive data
 7. **Logs:** Regularly clear application logs in the `logs/` directory
+8. **Operation mode:** For maximum security, use offline mode (without network components)
 
 ### For Developers
 1. **Input validation:** Always validate all input data
@@ -137,6 +146,7 @@
 5. **Code protection:** Store sensitive data in environment variables
 6. **Permission checks:** Verify file and directory access rights
 7. **Output sanitization:** Clean output data from potentially dangerous content
+8. **Component isolation:** Follow the principle of least privilege for C++ extensions
 
 ## Contact Information
 - Email for security issues: gbog.masters@gmail.com
