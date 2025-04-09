@@ -1,0 +1,7 @@
+PyQt6>=6.4.0
+SpeechRecognition>=3.8.1
+pyperclip>=1.8.2
+pynput>=1.7.3
+pyaudio>=0.2.11
+numpy>=1.21.0
+pybind11>=2.10.0 

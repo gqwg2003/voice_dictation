@@ -1,0 +1,40 @@
+{
+  "ru-RU": [
+    "нейросеть",
+    "машинное обучение",
+    "компьютерное зрение",
+    "интерфейс",
+    "адъювант",
+    "ингибитор",
+    "кластеризация",
+    "HTTP-запрос",
+    "RESTAPI",
+    "SQL-запрос",
+    "распределённая система",
+    "фреймворк",
+    "OCR",
+    "NLP",
+    "BERT",
+    "GPT",
+    "LLM",
+    "LLM-модель",
+    "HOOK",
+    "API",
+    "API-ключ",
+    "API-токен"
+  ],
+  "en-US": [
+    "RESTAPI",
+    "microservice",
+    "blockchain",
+    "multithreading",
+    "hyperparameter",
+    "asynchronous",
+    "distributed system",
+    "middleware",
+    "latency",
+    "throughput",
+    "OAuth",
+    "kubernetes"
+  ]
+} 
