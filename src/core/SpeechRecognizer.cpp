@@ -45,7 +45,15 @@ void SpeechRecognizer::RecognitionThread::run()
     
     while (!m_stopRequested) {
         try {
+            // Проверяем флаг остановки ещё раз перед обработкой
+            if (m_stopRequested) break;
+            
             m_recognizer->processAudioChunk();
+            
+            // Небольшая пауза, чтобы избежать интенсивного потребления ресурсов
+            // если аудиопроцессор не генерирует данных
+            QThread::msleep(10);
+            
         } catch (const std::exception& e) {
             gLogger->error("Exception in recognition thread: " + std::string(e.what()));
             emit m_recognizer->recognitionError(QString("Error in recognition thread: %1").arg(e.what()));
@@ -296,11 +304,19 @@ void SpeechRecognizer::processAudioChunk()
 {
     // Wait for the audio processor to signal that audio is ready
     if (!m_audioProcessor->waitForAudioData()) {
+        // Если waitForAudioData вернул false, значит запись остановлена
+        gLogger->debug("Audio processing stopped or no data available");
         return;
     }
     
     // Get the audio data
     auto audioData = m_audioProcessor->getAudioData();
+    
+    // Проверяем, что данные не пустые
+    if (audioData.empty()) {
+        gLogger->debug("Empty audio data received, skipping processing");
+        return;
+    }
     
     // Process the audio data
     processSpeech(audioData);

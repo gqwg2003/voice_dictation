@@ -89,7 +89,20 @@ void AudioProcessor::stopRecording()
         }
         
         m_audioInputDevice = nullptr;
-        m_isRecording = false;
+        
+        {
+            // Захватываем мьютекс, чтобы безопасно изменить состояние
+            std::lock_guard<std::mutex> lock(m_audioMutex);
+            m_isRecording = false;
+            
+            // Очищаем обработанные данные и буфер
+            m_processedAudioData.clear();
+            m_audioBuffer.clear();
+            m_audioDataReady = false;
+            
+            // Уведомляем все ожидающие потоки, чтобы они могли выйти из ожидания
+            m_audioDataCondition.notify_all();
+        }
         
         // Clear levels
         m_currentLevels.clear();
@@ -108,6 +121,8 @@ void AudioProcessor::stopRecording()
 std::vector<float> AudioProcessor::getAudioData()
 {
     std::lock_guard<std::mutex> lock(m_audioMutex);
+    // Сбрасываем флаг, чтобы можно было ждать следующую порцию данных
+    m_audioDataReady = false;
     return m_processedAudioData;
 }
 
@@ -178,7 +193,20 @@ void AudioProcessor::processAudioInput()
         QByteArray data = m_audioInputDevice->readAll();
         
         if (data.isEmpty()) {
+            // Это полезно для диагностики - логируем несколько раз, чтобы видеть, если микрофон не передает данные
+            static int emptyCounter = 0;
+            if (++emptyCounter % 10 == 0) { // Логируем каждый 10-й вызов с пустыми данными
+                gLogger->debug("Empty audio data received from device. This could be normal if no sound is detected.");
+                emptyCounter = 0;
+            }
             return;
+        }
+        
+        // Успешно получили данные, сбрасываем счетчик
+        static bool firstData = true;
+        if (firstData) {
+            gLogger->info("First audio data received from microphone (" + std::to_string(data.size()) + " bytes)");
+            firstData = false;
         }
         
         // Process the raw audio data
@@ -191,6 +219,8 @@ void AudioProcessor::processAudioInput()
             
             // Process buffer if enough data is available
             if (m_audioBuffer.size() >= BUFFER_SIZE) {
+                gLogger->debug("Processing audio buffer of size " + std::to_string(m_audioBuffer.size()) + " bytes");
+                
                 processedData = processRawAudioData(m_audioBuffer);
                 m_processedAudioData = processedData;
                 
@@ -223,10 +253,28 @@ void AudioProcessor::initialize()
 {
     gLogger->info("Initializing audio processor");
     
+    // Проверяем доступные аудиоустройства
+    auto inputDevices = QMediaDevices::audioInputs();
+    if (inputDevices.isEmpty()) {
+        gLogger->error("No audio input devices found");
+        emit errorOccurred(tr("No audio input devices found. Please connect a microphone."));
+        return;
+    }
+    
+    // Выводим информацию о доступных устройствах
+    gLogger->info("Available audio input devices:");
+    for (const auto& device : inputDevices) {
+        gLogger->info("  - " + device.description().toStdString());
+    }
+    
     // Setup audio format
     m_audioFormat.setSampleRate(m_sampleRate);
     m_audioFormat.setChannelCount(m_channelCount);
     m_audioFormat.setSampleFormat(QAudioFormat::Int16);
+    
+    // Выводим информацию о настроенном формате
+    gLogger->info("Audio format: " + std::to_string(m_sampleRate) + " Hz, " + 
+                  std::to_string(m_channelCount) + " channels, 16-bit samples");
     
     // Find default input device if not specified
     if (m_audioDevice.isNull()) {
@@ -236,6 +284,16 @@ void AudioProcessor::initialize()
             emit errorOccurred("No audio input device found");
         } else {
             gLogger->info("Using default input device: " + m_audioDevice.description().toStdString());
+            
+            // Проверяем поддержку формата
+            if (!m_audioDevice.isFormatSupported(m_audioFormat)) {
+                gLogger->warning("Audio format not supported by device, attempting to find nearest supported format");
+                m_audioFormat = m_audioDevice.preferredFormat();
+                m_sampleRate = m_audioFormat.sampleRate();
+                m_channelCount = m_audioFormat.channelCount();
+                gLogger->info("Using nearest supported format: " + std::to_string(m_sampleRate) + " Hz, " + 
+                              std::to_string(m_channelCount) + " channels");
+            }
         }
     }
     
@@ -245,6 +303,7 @@ void AudioProcessor::initialize()
     // Убедимся, что буфер чист
     m_processedAudioData.clear();
     m_audioBuffer.clear();
+    m_audioDataReady = false;
     
     gLogger->info("Audio processor initialized");
 }
@@ -317,12 +376,21 @@ bool AudioProcessor::waitForAudioData()
 {
     std::unique_lock<std::mutex> lock(m_audioMutex);
     
+    // Если запись остановлена, нет смысла ждать
+    if (!m_isRecording) {
+        return false;
+    }
+    
     // If we already have audio data ready, return immediately
     if (m_audioDataReady) {
         return true;
     }
     
-    // Wait indefinitely for condition variable to be notified
-    m_audioDataCondition.wait(lock, [this] { return m_audioDataReady.load(); });
-    return true;
+    // Wait indefinitely for condition variable to be notified or recording to stop
+    m_audioDataCondition.wait(lock, [this] { 
+        return m_audioDataReady.load() || !m_isRecording; 
+    });
+    
+    // Возвращаем true только если есть данные, false если запись была остановлена
+    return m_audioDataReady;
 } 

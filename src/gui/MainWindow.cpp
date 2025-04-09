@@ -19,6 +19,7 @@
 #include <QApplication>
 #include <QScreen>
 #include <QStatusBar>
+#include <QMediaDevices>
 
 // External global logger
 extern Logger* gLogger;
@@ -347,32 +348,64 @@ void MainWindow::onStartRecording()
 {
     gLogger->info("Starting recording");
     
+    // Проверяем доступность аудиоустройств
+    if (QMediaDevices::audioInputs().isEmpty()) {
+        QString errorMsg = tr("No audio input devices found. Please connect a microphone and try again.");
+        gLogger->error("No audio input devices available");
+        m_statusLabel->setText(errorMsg);
+        QMessageBox::warning(this, tr("Audio Input Error"), errorMsg);
+        return;
+    }
+    
+    // Деактивируем кнопку записи и активируем кнопку остановки
+    m_recordButton->setEnabled(false);
+    m_stopButton->setEnabled(true);
+    m_statusLabel->setText(tr("Starting recording..."));
+    
+    // Делаем текстовое поле только для чтения
     m_textEdit->setReadOnly(true);
+    
+    // Запускаем аудиозапись и распознавание
     m_audioProcessor->startRecording();
     m_speechRecognizer->startRecognition();
+    
+    // Запускаем таймер визуализации
     m_visualizationTimer.start();
     
     m_isRecording = true;
-    m_recordButton->setEnabled(false);
-    m_stopButton->setEnabled(true);
     m_statusLabel->setText(tr("Recording..."));
+    
+    // Добавляем индикатор на форму
+    setWindowTitle(tr("Voice Dictation [Recording]"));
 }
 
 void MainWindow::onStopRecording()
 {
     gLogger->info("Stopping recording");
     
+    // Обновляем состояние окна
+    m_statusLabel->setText(tr("Stopping recording..."));
+    
+    // Останавливаем запись и распознавание
     m_audioProcessor->stopRecording();
     m_speechRecognizer->stopRecognition();
+    
+    // Останавливаем таймер визуализации
     m_visualizationTimer.stop();
     
+    // Сбрасываем флаг записи
     m_isRecording = false;
+    
+    // Восстанавливаем интерфейс
     m_recordButton->setEnabled(true);
     m_stopButton->setEnabled(false);
     m_statusLabel->setText(tr("Ready"));
     m_textEdit->setReadOnly(false);
     
-    // Reset visualizer
+    // Возвращаем заголовок окна
+    setWindowTitle(tr("Voice Dictation"));
+    
+    // Очищаем визуализатор
     m_audioVisualizer->clear();
 }
 
