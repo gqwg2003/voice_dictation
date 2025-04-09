@@ -38,28 +38,30 @@ jobs:
           NEW_VERSION=$(python scripts/bump_version.py auto --dry-run | grep "New version:" | cut -d " " -f 3)
           echo "New version: $NEW_VERSION"
           if [ -n "$NEW_VERSION" ]; then
-            # Create Python script file
-            cat > update_version.py << 'EOL'
-import json
-import os
-from datetime import datetime
-
-version_file = 'utils/version_data.json'
-with open(version_file, 'r', encoding='utf-8') as f:
-    data = json.load(f)
-
-data['version'] = os.environ['NEW_VERSION']
-data['display_version'] = os.environ['NEW_VERSION']
-data['is_prerelease'] = False
-data['updated_at'] = datetime.now().isoformat()
-data['build_number'] = data.get('build_number', 0) + 1
-data['app_info']['version'] = os.environ['NEW_VERSION']
-data['app_info']['version_full'] = os.environ['NEW_VERSION']
-data['app_info']['is_prerelease'] = False
-
-with open(version_file, 'w', encoding='utf-8') as f:
-    json.dump(data, f, indent=2, ensure_ascii=False)
-EOL
+            # Create Python script for updating version
+            echo 'import json' > update_version.py
+            echo 'import os' >> update_version.py
+            echo 'from datetime import datetime' >> update_version.py
+            echo '' >> update_version.py
+            echo "version_file = 'utils/version_data.json'" >> update_version.py
+            echo "with open(version_file, 'r', encoding='utf-8') as f:" >> update_version.py
+            echo "    data = json.load(f)" >> update_version.py
+            echo '' >> update_version.py
+            echo "data['version'] = os.environ['NEW_VERSION']" >> update_version.py
+            echo "data['display_version'] = os.environ['NEW_VERSION']" >> update_version.py
+            echo "data['is_prerelease'] = False" >> update_version.py
+            echo "data['updated_at'] = datetime.now().isoformat()" >> update_version.py
+            echo "data['build_number'] = data.get('build_number', 0) + 1" >> update_version.py
+            echo "data['app_info']['version'] = os.environ['NEW_VERSION']" >> update_version.py
+            echo "data['app_info']['version_full'] = os.environ['NEW_VERSION']" >> update_version.py
+            echo "data['app_info']['is_prerelease'] = False" >> update_version.py
+            echo '' >> update_version.py
+            echo "with open(version_file, 'w', encoding='utf-8') as f:" >> update_version.py
+            echo "    json.dump(data, f, indent=2, ensure_ascii=False)" >> update_version.py
+            
+            # Export version as environment variable
+            export NEW_VERSION
+            
             # Update version data
             python update_version.py
             
