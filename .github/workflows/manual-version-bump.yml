@@ -66,21 +66,6 @@ jobs:
         id: bump_version
         shell: bash
         run: |
-          # Prepare the bump command
-          BUMP_CMD="python scripts/bump_version.py ${{ github.event.inputs.bump_type }}"
-          
-          # Add prerelease ID if needed
-          if [ "${{ github.event.inputs.bump_type }}" = "prerelease" ]; then
-            if [ -z "${{ github.event.inputs.prerelease_id }}" ]; then
-              echo "Error: Prerelease ID is required for prerelease bump"
-              exit 1
-            fi
-            BUMP_CMD="$BUMP_CMD ${{ github.event.inputs.prerelease_id }}"
-          fi
-          
-          # Add message
-          BUMP_CMD="$BUMP_CMD -m '${{ github.event.inputs.commit_message }}'"
-          
           # Run dry-run first to get the new version
           NEW_VERSION=$(python scripts/bump_version.py ${{ github.event.inputs.bump_type }} ${{ github.event.inputs.prerelease_id || '' }} --dry-run | grep "New version:" | cut -d " " -f 3)
           echo "New version will be: $NEW_VERSION"
@@ -113,12 +98,15 @@ jobs:
           # Update version data
           python update_version.py "$NEW_VERSION"
           
-          # Execute the bump command
-          eval $BUMP_CMD
-          
-          # Push changes
+          # Commit the version update
           git add utils/version_data.json
           git commit -m "Update version data to $NEW_VERSION [skip ci]"
+          
+          # Create tag manually with the specified message
+          COMMIT_MSG="${{ github.event.inputs.commit_message }}"
+          git tag -a "$NEW_VERSION" -m "$COMMIT_MSG"
+          
+          # Push both the commit and tag
           git push origin main
           git push origin "$NEW_VERSION"
 

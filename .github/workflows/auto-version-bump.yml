@@ -39,9 +39,11 @@ jobs:
       - name: Auto bump version
         shell: bash
         run: |
+          # Get the current version and determine the new version (dry run)
           python scripts/bump_version.py auto --dry-run
           NEW_VERSION=$(python scripts/bump_version.py auto --dry-run | grep "New version:" | cut -d " " -f 3)
           echo "New version: $NEW_VERSION"
+          
           if [ -n "$NEW_VERSION" ]; then
             # Create Python script for updating version
             echo 'import json' > update_version.py
@@ -69,12 +71,14 @@ jobs:
             # Update version data
             python update_version.py "$NEW_VERSION"
             
-            # Create tag
-            python scripts/bump_version.py auto -m "Automatic version bump by GitHub Actions"
-            
-            # Push changes
+            # Commit the version update
             git add utils/version_data.json
             git commit -m "Update version data to $NEW_VERSION [skip ci]"
+            
+            # Create and push the tag manually instead of using the script
+            git tag -a "$NEW_VERSION" -m "Automatic version bump by GitHub Actions"
+            
+            # Push both the commit and tag
             git push origin main
             git push origin "$NEW_VERSION"
           fi 
