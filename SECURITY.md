@@ -67,7 +67,7 @@
 
 ## Контактная информация
 - Email для вопросов безопасности: gbog.masters@gmail.com
-- Сайт проекта: [URL сайта]
+- Сайт проекта: https://github.com/gqwg2003/voice_dictation
 
 ---
 
@@ -140,4 +140,4 @@
 
 ## Contact Information
 - Email for security issues: gbog.masters@gmail.com
-- Project website: [Website URL]
+- Project website: https://github.com/gqwg2003/voice_dictation

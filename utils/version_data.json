@@ -1,15 +1,15 @@
 {
-  "version": "v2.8.7-20250409",
-  "display_version": "v2.8.7-20250409",
+  "version": "v2.8.7-8583d29",
+  "display_version": "v2.8.7-8583d29",
   "is_prerelease": true,
-  "updated_at": "2025-04-09T03:51:23.358779",
-  "build_number": 134,
+  "updated_at": "2025-04-09T04:14:33.602470",
+  "build_number": 139,
   "app_info": {
-    "version": "v2.8.7-20250409",
-    "version_full": "v2.8.7-20250409",
+    "version": "v2.8.7-8583d29",
+    "version_full": "v2.8.7-8583d29",
     "is_prerelease": true,
     "name": "\u0413\u043e\u043b\u043e\u0441\u043e\u0432\u043e\u0439 \u0412\u0432\u043e\u0434",
     "copyright": "\u00a9 2025",
-    "website": "https://github.com/gqwg2003/voice-multilingual"
+    "website": "https://github.com/gqwg2003/voice_dictation"
   }
 }

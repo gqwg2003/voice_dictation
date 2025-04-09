@@ -20,7 +20,7 @@
 ### 🚀 Установка и запуск
 ```bash
 # Клонирование репозитория
-git clone [URL репозитория]
+git clone https://github.com/gqwg2003/voice_dictation.git
 
 # Установка зависимостей
 pip install -r requirements.txt
@@ -81,7 +81,7 @@ A multilingual application for voice recognition and quick text input. Perfect f
 ### 🚀 Installation and Launch
 ```bash
 # Clone repository
-git clone [repository URL]
+git clone https://github.com/gqwg2003/voice_dictation.git
 
 # Install dependencies
 pip install -r requirements.txt

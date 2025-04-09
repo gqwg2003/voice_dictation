@@ -218,7 +218,7 @@ def get_app_info() -> dict:
         "is_prerelease": is_prerelease(version),
         "name": "Голосовой Ввод",
         "copyright": f"© {datetime.datetime.now().year}",
-        "website": "https://github.com/gqwg2003/voice-multilingual"
+        "website": "https://github.com/gqwg2003/voice_dictation"
     }
 
 # Module-level version variable
