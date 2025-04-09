@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(VoiceDictation VERSION 1.0.0)
+project(VoiceDictation VERSION 3.1.1)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -75,7 +75,34 @@ endif()
 # Add include directories
 include_directories(${CMAKE_SOURCE_DIR})
 
-# Sources
+# Recognition service files
+set(RECOGNITION_SERVICES
+    src/core/recognition_services/RecognitionService.cpp
+    src/core/recognition_services/WhisperRecognitionService.cpp
+    src/core/recognition_services/GoogleRecognitionService.cpp
+    src/core/recognition_services/AzureRecognitionService.cpp
+    src/core/recognition_services/YandexRecognitionService.cpp
+)
+
+# Settings tabs files
+set(SETTINGS_TABS
+    # These will be implemented in the next phase
+    # src/gui/settings_tabs/GeneralTab.cpp
+    # src/gui/settings_tabs/AudioTab.cpp
+    # src/gui/settings_tabs/LanguageTab.cpp
+    # src/gui/settings_tabs/HotkeysTab.cpp
+    # src/gui/settings_tabs/AdvancedTab.cpp
+)
+
+# UI components files
+set(UI_COMPONENTS
+    # These will be implemented in the next phase
+    # src/gui/ui_components/RecordingControls.cpp
+    # src/gui/ui_components/HistoryPanel.cpp
+    # src/gui/ui_components/StatusIndicator.cpp
+)
+
+# Main sources
 set(SOURCES
     src/main.cpp
     src/gui/MainWindow.cpp
@@ -88,6 +115,9 @@ set(SOURCES
     src/core/HotkeyManager.cpp
     src/utils/Logger.cpp
     src/utils/Version.cpp
+    ${RECOGNITION_SERVICES}
+    ${SETTINGS_TABS}
+    ${UI_COMPONENTS}
 )
 
 # Headers
@@ -102,6 +132,20 @@ set(HEADERS
     src/core/HotkeyManager.h
     src/utils/Logger.h
     src/utils/Version.h
+    src/core/recognition_services/RecognitionService.h
+    src/core/recognition_services/WhisperRecognitionService.h
+    src/core/recognition_services/GoogleRecognitionService.h
+    src/core/recognition_services/AzureRecognitionService.h
+    src/core/recognition_services/YandexRecognitionService.h
+    # These will be implemented in the next phase
+    # src/gui/settings_tabs/GeneralTab.h
+    # src/gui/settings_tabs/AudioTab.h
+    # src/gui/settings_tabs/LanguageTab.h
+    # src/gui/settings_tabs/HotkeysTab.h
+    # src/gui/settings_tabs/AdvancedTab.h
+    # src/gui/ui_components/RecordingControls.h
+    # src/gui/ui_components/HistoryPanel.h
+    # src/gui/ui_components/StatusIndicator.h
 )
 
 # Resources
