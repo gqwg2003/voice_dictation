@@ -1,12 +1,12 @@
 {
-  "version": "v2.8.8",
-  "display_version": "v2.8.8",
+  "version": "v2.8.9",
+  "display_version": "v2.8.9",
   "is_prerelease": false,
-  "updated_at": "2025-04-09T02:15:22.930044",
-  "build_number": 146,
+  "updated_at": "2025-04-09T02:23:55.180461",
+  "build_number": 147,
   "app_info": {
-    "version": "v2.8.8",
-    "version_full": "v2.8.8",
+    "version": "v2.8.9",
+    "version_full": "v2.8.9",
     "is_prerelease": false,
     "name": "Голосовой Ввод",
     "copyright": "© 2025",
