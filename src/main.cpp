@@ -16,6 +16,11 @@
 #include <iostream>
 #include <signal.h>
 #include <fstream>
+#include <QTranslator>
+#include <QSettings>
+#include <QLocale>
+#include <QStandardPaths>
+#include <QDateTime>
 
 #include "gui/MainWindow.h"
 #include "utils/Logger.h"
@@ -23,6 +28,63 @@
 
 // Global variables
 Logger* gLogger = nullptr;
+
+// Initialize logger
+bool initializeLogger() {
+    // Create logs directory in app data location if it doesn't exist
+    QString appDataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir appDataDir(appDataPath);
+    if (!appDataDir.exists()) {
+        appDataDir.mkpath(".");
+    }
+    
+    QString logsPath = appDataPath + "/logs";
+    QDir logsDir(logsPath);
+    if (!logsDir.exists()) {
+        logsDir.mkpath(".");
+    }
+    
+    // Create log file name with current date/time
+    QString logFileName = logsPath + "/voice_dictation_" + 
+                          QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".log";
+    
+    // Initialize global logger
+    gLogger = new Logger();
+    
+    // Apply logging settings
+    QSettings settings;
+    bool enableLogging = settings.value("advanced/enable_logging", false).toBool();
+    QString logLevelStr = settings.value("advanced/log_level", "info").toString();
+    
+    LogLevel logLevel = LogLevel::Info;
+    if (logLevelStr == "error") logLevel = LogLevel::Error;
+    else if (logLevelStr == "warning") logLevel = LogLevel::Warning;
+    else if (logLevelStr == "info") logLevel = LogLevel::Info;
+    else if (logLevelStr == "debug") logLevel = LogLevel::Debug;
+    else if (logLevelStr == "verbose") logLevel = LogLevel::Verbose;
+    
+    gLogger->setLogLevel(logLevel);
+    gLogger->setEnableLogging(enableLogging);
+    
+    // Initialize logger with log file
+    bool success = gLogger->init(logFileName.toStdString());
+    if (success) {
+        gLogger->info("Logger initialized successfully");
+    } else {
+        gLogger->error("Failed to initialize logger");
+    }
+    
+    return success;
+}
+
+// Cleanup logger
+void cleanupLogger() {
+    if (gLogger) {
+        gLogger->info("Application shutting down");
+        delete gLogger;
+        gLogger = nullptr;
+    }
+}
 
 // Signal handler function for graceful shutdown
 void signalHandler(int signal) {
@@ -83,7 +145,7 @@ int main(int argc, char *argv[]) {
         
         // Setup logging
         writeDebugToFile("Setting up logger...");
-        gLogger = new Logger(LogLevel::DEBUG); // Use DEBUG level for more detailed logging
+        bool loggerInitialized = initializeLogger();
         gLogger->info("Starting Voice Dictation Application v" + versionData.displayVersion);
         writeDebugToFile("Logger initialized");
         
@@ -106,6 +168,21 @@ int main(int argc, char *argv[]) {
         sigaction(SIGTERM, &sa, NULL);
         #endif
         
+        // Load translator based on system locale or user preference
+        QSettings settings;
+        QString language = settings.value("language/current", QLocale::system().name()).toString();
+        
+        QTranslator translator;
+        if (language != "en-US" && language != "en") {
+            QString qmFile = ":/translations/voicedictation_" + language.left(2) + ".qm";
+            if (translator.load(qmFile)) {
+                app.installTranslator(&translator);
+                gLogger->info("Loaded translation: " + qmFile.toStdString());
+            } else {
+                gLogger->warning("Failed to load translation: " + qmFile.toStdString());
+            }
+        }
+        
         // Create main window
         writeDebugToFile("Creating main window...");
         MainWindow mainWindow;
@@ -127,7 +204,7 @@ int main(int argc, char *argv[]) {
         writeDebugToFile("Qt event loop exited with code: " + std::to_string(result));
         
         // Cleanup
-        delete gLogger;
+        cleanupLogger();
         
         return result;
     } catch (const std::exception& e) {

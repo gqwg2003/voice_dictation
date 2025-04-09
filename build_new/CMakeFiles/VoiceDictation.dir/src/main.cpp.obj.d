@@ -461,6 +461,16 @@ CMakeFiles/VoiceDictation.dir/src/main.cpp.obj: \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32/bits/basic_file.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32/bits/c++io.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/fstream.tcc \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/QTranslator \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qtranslator.h \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/QSettings \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qsettings.h \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/QLocale \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qlocale.h \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/QStandardPaths \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qstandardpaths.h \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/QDateTime \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qdatetime.h \
  D:\voice\ multilingual\src\gui/MainWindow.h \
  C:/Qt/6.9.0/mingw_64/include/QtWidgets/QMainWindow \
  C:/Qt/6.9.0/mingw_64/include/QtWidgets/qmainwindow.h \
@@ -502,7 +512,7 @@ CMakeFiles/VoiceDictation.dir/src/main.cpp.obj: \
  C:/Qt/6.9.0/mingw_64/include/QtCore/qabstractitemmodel.h \
  C:/Qt/6.9.0/mingw_64/include/QtCore/QTimer \
  C:/Qt/6.9.0/mingw_64/include/QtCore/qtimer.h \
- C:/Qt/6.9.0/mingw_64/include/QtCore/QTranslator \
- C:/Qt/6.9.0/mingw_64/include/QtCore/qtranslator.h \
  D:\voice\ multilingual\src\utils/Logger.h \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/QString \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qstring.h \
  D:\voice\ multilingual\src\utils/Version.h

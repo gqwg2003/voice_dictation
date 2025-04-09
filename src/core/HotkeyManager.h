@@ -10,7 +10,11 @@
 // Forward declarations for platform-specific implementations
 class HotkeyManagerImpl;
 
+#ifdef Q_OS_WIN
+class HotkeyManager : public QObject, public QAbstractNativeEventFilter {
+#else
 class HotkeyManager : public QObject {
+#endif
     Q_OBJECT
 
 public:
@@ -45,6 +49,11 @@ public:
     void setEnabled(bool enabled);
     bool isEnabled() const;
 
+#ifdef Q_OS_WIN
+    // Windows native event filter (from QAbstractNativeEventFilter)
+    bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) override;
+#endif
+
 signals:
     void hotkeyPressed(const QString& action);
     void hotkeyRegistered(const QString& action, const QKeySequence& keySequence);
@@ -63,4 +72,7 @@ private:
     
     // Load default hotkeys
     void loadDefaultHotkeys();
+
+    // Make m_impl accessible to nativeEventFilter
+    friend class HotkeyManagerImpl;
 }; 

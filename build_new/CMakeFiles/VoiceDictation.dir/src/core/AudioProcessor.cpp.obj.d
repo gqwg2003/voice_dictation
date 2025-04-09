@@ -372,6 +372,8 @@ CMakeFiles/VoiceDictation.dir/src/core/AudioProcessor.cpp.obj: \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32/bits/c++io.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/fstream.tcc \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/iostream \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/QString \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qstring.h \
  C:/Qt/6.9.0/mingw_64/include/QtCore/QDebug \
  C:/Qt/6.9.0/mingw_64/include/QtCore/qdebug.h \
  C:/Qt/6.9.0/mingw_64/include/QtCore/qtextstream.h \

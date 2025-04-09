@@ -128,11 +128,14 @@ void MainWindow::setupUi()
     m_clearButton->setIcon(QIcon(":/icons/clear.png"));
     m_copyButton = new QPushButton(tr("Copy"), this);
     m_copyButton->setIcon(QIcon(":/icons/copy.png"));
+    m_settingsButton = new QPushButton(tr("Settings"), this);
+    m_settingsButton->setIcon(QIcon(":/icons/settings.png"));
     
     controlsLayout->addWidget(m_recordButton);
     controlsLayout->addWidget(m_stopButton);
     controlsLayout->addWidget(m_clearButton);
     controlsLayout->addWidget(m_copyButton);
+    controlsLayout->addWidget(m_settingsButton);
     
     mainLayout->addLayout(controlsLayout);
     
@@ -194,6 +197,7 @@ void MainWindow::createConnections()
     connect(m_stopButton, &QPushButton::clicked, this, &MainWindow::onStopRecording);
     connect(m_clearButton, &QPushButton::clicked, this, &MainWindow::onClearText);
     connect(m_copyButton, &QPushButton::clicked, this, &MainWindow::onCopyText);
+    connect(m_settingsButton, &QPushButton::clicked, this, &MainWindow::onSettingsAction);
     
     // ComboBox connections
     connect(m_languageComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), 
@@ -202,6 +206,18 @@ void MainWindow::createConnections()
     // Speech recognizer connections
     connect(m_speechRecognizer.get(), &SpeechRecognizer::speechRecognized,
             this, &MainWindow::onSpeechRecognized);
+    connect(m_speechRecognizer.get(), &SpeechRecognizer::recognitionError,
+            this, &MainWindow::onRecognitionError);
+    connect(m_speechRecognizer.get(), &SpeechRecognizer::recognitionStarted,
+            this, [this]() { m_statusLabel->setText(tr("Recognition started")); });
+    connect(m_speechRecognizer.get(), &SpeechRecognizer::recognitionStopped,
+            this, [this]() { m_statusLabel->setText(tr("Recognition stopped")); });
+    
+    // Audio processor connections
+    connect(m_audioProcessor.get(), &AudioProcessor::audioDataReady,
+            m_speechRecognizer.get(), &SpeechRecognizer::processSpeech);
+    connect(m_audioProcessor.get(), &AudioProcessor::errorOccurred,
+            this, &MainWindow::onAudioError);
     
     // Hotkey connections
     connect(m_hotkeyManager.get(), &HotkeyManager::hotkeyPressed,
@@ -213,19 +229,50 @@ void MainWindow::loadSettings()
     QSettings settings;
     
     // Load window geometry
-    if (settings.contains("mainwindow/geometry")) {
-        restoreGeometry(settings.value("mainwindow/geometry").toByteArray());
+    if (settings.contains("window/geometry")) {
+        restoreGeometry(settings.value("window/geometry").toByteArray());
+    } else {
+        // Default size
+        resize(800, 600);
     }
     
-    // Load language
-    QString language = settings.value("app/language", "en-US").toString();
-    int languageIndex = m_languageComboBox->findData(language);
-    if (languageIndex >= 0) {
-        m_languageComboBox->setCurrentIndex(languageIndex);
+    // Load window state
+    if (settings.contains("window/state")) {
+        restoreState(settings.value("window/state").toByteArray());
     }
     
-    // Apply language
-    switchLanguage(language);
+    // Start minimized?
+    bool startMinimized = settings.value("general/start_minimized", false).toBool();
+    if (startMinimized) {
+        QTimer::singleShot(0, this, &MainWindow::hide);
+    }
+    
+    // Configure speech recognizer
+    if (m_speechRecognizer) {
+        // Set language
+        QString language = settings.value("language/current", "en-US").toString();
+        m_speechRecognizer->setLanguage(language);
+        
+        // Set recognition service
+        QString service = settings.value("speech/recognition_service", "offline").toString();
+        if (service == "google") {
+            m_speechRecognizer->setRecognitionService(RecognitionServiceType::Google);
+        } else if (service == "yandex") {
+            m_speechRecognizer->setRecognitionService(RecognitionServiceType::Yandex);
+        } else if (service == "azure") {
+            m_speechRecognizer->setRecognitionService(RecognitionServiceType::Azure);
+        } else {
+            m_speechRecognizer->setRecognitionService(RecognitionServiceType::Offline);
+        }
+        
+        // Set shared API key usage
+        bool useSharedApiKey = settings.value("speech/use_shared_api_key", false).toBool();
+        m_speechRecognizer->setUseSharedApiKey(useSharedApiKey);
+        
+        // Set API key (used only if not using shared key)
+        QString apiKey = settings.value("speech/api_key", "").toString();
+        m_speechRecognizer->setApiKey(apiKey);
+    }
 }
 
 void MainWindow::saveSettings()
@@ -233,10 +280,13 @@ void MainWindow::saveSettings()
     QSettings settings;
     
     // Save window geometry
-    settings.setValue("mainwindow/geometry", saveGeometry());
+    settings.setValue("window/geometry", saveGeometry());
+    
+    // Save window state
+    settings.setValue("window/state", saveState());
     
     // Save language
-    settings.setValue("app/language", m_languageComboBox->currentData().toString());
+    settings.setValue("language/current", m_currentLanguage);
 }
 
 void MainWindow::switchLanguage(const QString &language)
@@ -275,6 +325,7 @@ void MainWindow::retranslateUi()
     m_stopButton->setText(tr("Stop"));
     m_clearButton->setText(tr("Clear"));
     m_copyButton->setText(tr("Copy"));
+    m_settingsButton->setText(tr("Settings"));
     m_textEdit->setPlaceholderText(tr("Recognized text will appear here..."));
     m_statusLabel->setText(tr("Ready"));
     
@@ -292,6 +343,7 @@ void MainWindow::onStartRecording()
 {
     gLogger->info("Starting recording");
     
+    m_textEdit->setReadOnly(true);
     m_audioProcessor->startRecording();
     m_speechRecognizer->startRecognition();
     m_visualizationTimer.start();
@@ -314,6 +366,7 @@ void MainWindow::onStopRecording()
     m_recordButton->setEnabled(true);
     m_stopButton->setEnabled(false);
     m_statusLabel->setText(tr("Ready"));
+    m_textEdit->setReadOnly(false);
     
     // Reset visualizer
     m_audioVisualizer->clear();
@@ -397,11 +450,37 @@ void MainWindow::updateAudioVisualization()
 void MainWindow::onSpeechRecognized(const QString &text)
 {
     if (!text.isEmpty()) {
+        gLogger->info("Speech recognized: " + text.toStdString());
+        
         // Process text with text processor (for formatting, etc.)
         QString processedText = m_textProcessor->processText(text, m_currentLanguage);
         
         // Append to text edit
         m_textEdit->append(processedText);
+        
+        // Scroll to bottom
+        m_textEdit->moveCursor(QTextCursor::End);
+        m_textEdit->ensureCursorVisible();
+        
+        // Update status
+        m_statusLabel->setText(tr("Text recognized"));
+    }
+}
+
+void MainWindow::onRecognitionError(const QString &errorMessage)
+{
+    gLogger->error("Recognition error: " + errorMessage.toStdString());
+    m_statusLabel->setText(tr("Recognition error: %1").arg(errorMessage));
+}
+
+void MainWindow::onAudioError(const QString &errorMessage)
+{
+    gLogger->error("Audio error: " + errorMessage.toStdString());
+    m_statusLabel->setText(tr("Audio error: %1").arg(errorMessage));
+    
+    // Если произошла ошибка во время записи, останавливаем запись
+    if (m_isRecording) {
+        onStopRecording();
     }
 }
 
@@ -426,9 +505,61 @@ void MainWindow::applySettings()
 {
     gLogger->info("Applying settings");
     
-    // Reload hotkeys
+    // Загружаем настройки из QSettings
+    QSettings settings;
+    
+    // Применяем настройки языка
+    QString language = settings.value("language/current", "en-US").toString();
+    if (language != m_currentLanguage) {
+        // Найдем индекс в комбобоксе для этого языка
+        int langIndex = m_languageComboBox->findData(language);
+        if (langIndex >= 0) {
+            m_languageComboBox->setCurrentIndex(langIndex);
+        }
+        switchLanguage(language);
+    }
+    
+    // Применяем настройки сервиса распознавания
+    if (m_speechRecognizer) {
+        // Устанавливаем сервис распознавания
+        QString service = settings.value("speech/recognition_service", "offline").toString();
+        RecognitionServiceType serviceType = RecognitionServiceType::Offline;
+        
+        if (service == "google") {
+            serviceType = RecognitionServiceType::Google;
+        } else if (service == "yandex") {
+            serviceType = RecognitionServiceType::Yandex;
+        } else if (service == "azure") {
+            serviceType = RecognitionServiceType::Azure;
+        }
+        
+        m_speechRecognizer->setRecognitionService(serviceType);
+        
+        // Устанавливаем общий ключ API
+        bool useSharedApiKey = settings.value("speech/use_shared_api_key", false).toBool();
+        m_speechRecognizer->setUseSharedApiKey(useSharedApiKey);
+        
+        // Устанавливаем ключ API (используется только если не используется общий ключ)
+        QString apiKey = settings.value("speech/api_key", "").toString();
+        m_speechRecognizer->setApiKey(apiKey);
+    }
+    
+    // Обновляем настройки аудиопроцессора
+    if (m_audioProcessor) {
+        // Устанавливаем частоту дискретизации
+        int sampleRate = settings.value("audio/sample_rate", 16000).toInt();
+        m_audioProcessor->setSampleRate(sampleRate);
+        
+        // Устанавливаем количество каналов
+        int channels = settings.value("audio/channels", 1).toInt();
+        m_audioProcessor->setChannelCount(channels);
+    }
+    
+    // Перезагружаем горячие клавиши
     m_hotkeyManager->reloadHotkeys();
     
-    // Apply any other settings changes
-    // ...
+    // Обновляем статус
+    m_statusLabel->setText(tr("Settings applied"));
+    
+    gLogger->info("Settings applied successfully");
 } 

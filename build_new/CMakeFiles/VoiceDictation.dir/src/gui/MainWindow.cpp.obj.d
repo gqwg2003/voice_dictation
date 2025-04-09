@@ -449,6 +449,8 @@ CMakeFiles/VoiceDictation.dir/src/gui/MainWindow.cpp.obj: \
  C:/Qt/6.9.0/mingw_64/include/QtWidgets/qkeysequenceedit.h \
  C:/Qt/6.9.0/mingw_64/include/QtCore/QMap \
  C:/Qt/6.9.0/mingw_64/include/QtCore/qmap.h \
+ C:/Qt/6.9.0/mingw_64/include/QtWidgets/QLineEdit \
+ C:/Qt/6.9.0/mingw_64/include/QtWidgets/qlineedit.h \
  D:/voice\ multilingual/src/core/SpeechRecognizer.h \
  C:/Qt/6.9.0/mingw_64/include/QtCore/QObject \
  C:/Qt/6.9.0/mingw_64/include/QtCore/qobject.h \

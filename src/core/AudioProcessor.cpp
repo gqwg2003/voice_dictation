@@ -223,9 +223,7 @@ void AudioProcessor::initialize()
     m_audioFormat.setSampleFormat(QAudioFormat::Int16);
     
     // Find default input device if not specified
-    if (!m_audioDevice.isNull()) {
-        gLogger->info("Using specified input device");
-    } else {
+    if (m_audioDevice.isNull()) {
         m_audioDevice = QMediaDevices::defaultAudioInput();
         if (m_audioDevice.isNull()) {
             gLogger->error("No audio input device found");
@@ -237,6 +235,12 @@ void AudioProcessor::initialize()
     
     // Initialize empty level data
     m_currentLevels.resize(LEVEL_COUNT, 0.0f);
+    
+    // Убедимся, что буфер чист
+    m_processedAudioData.clear();
+    m_audioBuffer.clear();
+    
+    gLogger->info("Audio processor initialized");
 }
 
 std::vector<float> AudioProcessor::processRawAudioData(const QByteArray& rawData)
@@ -248,11 +252,15 @@ std::vector<float> AudioProcessor::processRawAudioData(const QByteArray& rawData
     const int16_t* samples = reinterpret_cast<const int16_t*>(rawData.constData());
     int sampleCount = rawData.size() / 2;
     
-    // Convert to float and normalize to [-1, 1]
+    // Convert to normalized float values [-1.0, 1.0]
+    float normalizationFactor = 1.0f / 32768.0f;  // For 16-bit audio
+    
     for (int i = 0; i < sampleCount; ++i) {
-        float normalizedSample = static_cast<float>(samples[i]) / 32768.0f;
+        float normalizedSample = static_cast<float>(samples[i]) * normalizationFactor;
         processedData.push_back(normalizedSample);
     }
+    
+    gLogger->debug("Processed " + std::to_string(sampleCount) + " audio samples");
     
     return processedData;
 }
@@ -265,35 +273,25 @@ std::vector<float> AudioProcessor::calculateAudioLevels(const std::vector<float>
         return levels;
     }
     
-    // Divide the audio data into LEVEL_COUNT segments and calculate RMS for each
-    size_t samplesPerLevel = audioData.size() / LEVEL_COUNT;
+    // Calculate RMS levels for different frequency bands
+    // For simplicity, we'll just calculate the overall RMS level and create a visualizer
     
-    if (samplesPerLevel == 0) {
-        // Not enough samples, use average for all
-        float sum = 0.0f;
-        for (float sample : audioData) {
-            sum += sample * sample;  // Square for RMS
-        }
+    float sumOfSquares = 0.0f;
+    for (const auto& sample : audioData) {
+        sumOfSquares += sample * sample;
+    }
+    
+    float rms = std::sqrt(sumOfSquares / audioData.size());
+    
+    // Create a simple visual "spectrum" effect
+    // Центральные полосы выше, края ниже (для визуального эффекта)
+    for (int i = 0; i < LEVEL_COUNT; ++i) {
+        float position = static_cast<float>(i) / LEVEL_COUNT;
+        float amplitude = std::sin(position * 3.14159f);  // 0 to 1 to 0
+        levels[i] = rms * amplitude * 5.0f; // Усиливаем для лучшего отображения
         
-        float rms = std::sqrt(sum / audioData.size());
-        std::fill(levels.begin(), levels.end(), rms);
-    } else {
-        // Calculate RMS for each segment
-        for (int i = 0; i < LEVEL_COUNT; ++i) {
-            size_t startIdx = i * samplesPerLevel;
-            size_t endIdx = (i + 1) * samplesPerLevel;
-            
-            if (i == LEVEL_COUNT - 1) {
-                endIdx = audioData.size();  // Last segment takes all remaining samples
-            }
-            
-            float sum = 0.0f;
-            for (size_t j = startIdx; j < endIdx; ++j) {
-                sum += audioData[j] * audioData[j];  // Square for RMS
-            }
-            
-            levels[i] = std::sqrt(sum / (endIdx - startIdx));
-        }
+        // Ограничиваем значения
+        levels[i] = std::max(0.0f, std::min(1.0f, levels[i]));
     }
     
     return levels;

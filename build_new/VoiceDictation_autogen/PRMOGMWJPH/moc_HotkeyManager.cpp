@@ -116,6 +116,8 @@ void *HotkeyManager::qt_metacast(const char *_clname)
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_staticMetaObjectStaticContent<qt_meta_tag_ZN13HotkeyManagerE_t>.strings))
         return static_cast<void*>(this);
+    if (!strcmp(_clname, "QAbstractNativeEventFilter"))
+        return static_cast< QAbstractNativeEventFilter*>(this);
     return QObject::qt_metacast(_clname);
 }
 

@@ -145,6 +145,7 @@ D:/voice\ multilingual/build_new/VoiceDictation_autogen/MXUWEOXILK/moc_SettingsD
   C:/Qt/6.9.0/mingw_64/include/QtGui/qkeysequence.h \
   C:/Qt/6.9.0/mingw_64/include/QtGui/qpaintdevice.h \
   C:/Qt/6.9.0/mingw_64/include/QtGui/qpalette.h \
+  C:/Qt/6.9.0/mingw_64/include/QtGui/qpen.h \
   C:/Qt/6.9.0/mingw_64/include/QtGui/qpicture.h \
   C:/Qt/6.9.0/mingw_64/include/QtGui/qpixelformat.h \
   C:/Qt/6.9.0/mingw_64/include/QtGui/qpixmap.h \
@@ -152,7 +153,10 @@ D:/voice\ multilingual/build_new/VoiceDictation_autogen/MXUWEOXILK/moc_SettingsD
   C:/Qt/6.9.0/mingw_64/include/QtGui/qregion.h \
   C:/Qt/6.9.0/mingw_64/include/QtGui/qrgb.h \
   C:/Qt/6.9.0/mingw_64/include/QtGui/qrgba64.h \
+  C:/Qt/6.9.0/mingw_64/include/QtGui/qtextcursor.h \
   C:/Qt/6.9.0/mingw_64/include/QtGui/qtextdocument.h \
+  C:/Qt/6.9.0/mingw_64/include/QtGui/qtextformat.h \
+  C:/Qt/6.9.0/mingw_64/include/QtGui/qtextoption.h \
   C:/Qt/6.9.0/mingw_64/include/QtGui/qtgui-config.h \
   C:/Qt/6.9.0/mingw_64/include/QtGui/qtguiexports.h \
   C:/Qt/6.9.0/mingw_64/include/QtGui/qtguiglobal.h \
@@ -166,6 +170,7 @@ D:/voice\ multilingual/build_new/VoiceDictation_autogen/MXUWEOXILK/moc_SettingsD
   C:/Qt/6.9.0/mingw_64/include/QtWidgets/QGroupBox \
   C:/Qt/6.9.0/mingw_64/include/QtWidgets/QKeySequenceEdit \
   C:/Qt/6.9.0/mingw_64/include/QtWidgets/QLabel \
+  C:/Qt/6.9.0/mingw_64/include/QtWidgets/QLineEdit \
   C:/Qt/6.9.0/mingw_64/include/QtWidgets/QPushButton \
   C:/Qt/6.9.0/mingw_64/include/QtWidgets/QSpinBox \
   C:/Qt/6.9.0/mingw_64/include/QtWidgets/QTabWidget \
@@ -180,6 +185,7 @@ D:/voice\ multilingual/build_new/VoiceDictation_autogen/MXUWEOXILK/moc_SettingsD
   C:/Qt/6.9.0/mingw_64/include/QtWidgets/qgroupbox.h \
   C:/Qt/6.9.0/mingw_64/include/QtWidgets/qkeysequenceedit.h \
   C:/Qt/6.9.0/mingw_64/include/QtWidgets/qlabel.h \
+  C:/Qt/6.9.0/mingw_64/include/QtWidgets/qlineedit.h \
   C:/Qt/6.9.0/mingw_64/include/QtWidgets/qpushbutton.h \
   C:/Qt/6.9.0/mingw_64/include/QtWidgets/qrubberband.h \
   C:/Qt/6.9.0/mingw_64/include/QtWidgets/qsizepolicy.h \

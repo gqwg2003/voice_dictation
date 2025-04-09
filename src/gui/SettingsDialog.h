@@ -10,6 +10,7 @@
 #include <QGroupBox>
 #include <QKeySequenceEdit>
 #include <QMap>
+#include <QLineEdit>
 
 class SettingsDialog : public QDialog {
     Q_OBJECT
@@ -25,6 +26,8 @@ private slots:
     void onAccept();
     void onReject();
     void onRestoreDefaults();
+    void handleRecognitionServiceChanged(int index);
+    void onUsePublicApiToggled(bool checked);
 
 private:
     // UI setup
@@ -33,6 +36,7 @@ private:
     void createHotkeysTab();
     void createAudioTab();
     void createLanguageTab();
+    void createAdvancedTab();
     
     // Settings
     void loadSettings();
@@ -69,6 +73,17 @@ private:
     QCheckBox* m_autoCorrectCheckBox;
     QCheckBox* m_capitalizeFirstCheckBox;
     QCheckBox* m_addPunctuationCheckBox;
+    QComboBox* m_recognitionServiceComboBox;
+    QLineEdit* m_apiKeyEdit;
+    QLineEdit* m_azureRegionEdit;
+    QCheckBox* m_usePublicApiCheckBox;
+    
+    // Advanced tab
+    QCheckBox* m_debugModeCheckBox;
+    QSpinBox* m_recognitionThresholdSpinBox;
+    QLineEdit* m_customModelPathEdit;
+    QCheckBox* m_enableLoggingCheckBox;
+    QComboBox* m_logLevelComboBox;
     
     // Dialog buttons
     QPushButton* m_okButton;

@@ -1,6 +1,7 @@
 #include "SettingsDialog.h"
 #include "../utils/Logger.h"
 #include "../core/HotkeyManager.h"
+#include "../core/SpeechRecognizer.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -10,6 +11,7 @@
 #include <QMessageBox>
 #include <QMediaDevices>
 #include <QAudioDevice>
+#include <QFileDialog>
 
 // External global logger
 extern Logger* gLogger;
@@ -40,6 +42,7 @@ void SettingsDialog::setupUi()
     createHotkeysTab();
     createAudioTab();
     createLanguageTab();
+    createAdvancedTab();
     
     // Create buttons
     QDialogButtonBox* buttonBox = new QDialogButtonBox(this);
@@ -196,24 +199,135 @@ void SettingsDialog::createLanguageTab()
     QWidget* tab = new QWidget(this);
     QVBoxLayout* layout = new QVBoxLayout(tab);
     
-    // Text processing settings
-    QGroupBox* textGroup = new QGroupBox(tr("Text Processing"), tab);
-    QVBoxLayout* textLayout = new QVBoxLayout(textGroup);
+    // Language options group
+    QGroupBox* languageGroup = new QGroupBox(tr("Language Options"), tab);
+    QVBoxLayout* languageLayout = new QVBoxLayout(languageGroup);
     
-    m_autoCorrectCheckBox = new QCheckBox(tr("Auto-correct common spelling errors"), textGroup);
-    m_capitalizeFirstCheckBox = new QCheckBox(tr("Capitalize first letter of sentences"), textGroup);
-    m_addPunctuationCheckBox = new QCheckBox(tr("Add punctuation marks if missing"), textGroup);
+    m_autoCorrectCheckBox = new QCheckBox(tr("Auto-correct text"), languageGroup);
+    m_capitalizeFirstCheckBox = new QCheckBox(tr("Capitalize first letter of sentences"), languageGroup);
+    m_addPunctuationCheckBox = new QCheckBox(tr("Add punctuation automatically"), languageGroup);
     
-    textLayout->addWidget(m_autoCorrectCheckBox);
-    textLayout->addWidget(m_capitalizeFirstCheckBox);
-    textLayout->addWidget(m_addPunctuationCheckBox);
+    languageLayout->addWidget(m_autoCorrectCheckBox);
+    languageLayout->addWidget(m_capitalizeFirstCheckBox);
+    languageLayout->addWidget(m_addPunctuationCheckBox);
     
-    // Add groups to tab
-    layout->addWidget(textGroup);
+    // Recognition service group
+    QGroupBox* serviceGroup = new QGroupBox(tr("Recognition Service"), tab);
+    QVBoxLayout* serviceLayout = new QVBoxLayout(serviceGroup);
+    
+    QFormLayout* formLayout = new QFormLayout();
+    m_recognitionServiceComboBox = new QComboBox(serviceGroup);
+    m_recognitionServiceComboBox->addItem("Whisper Local", "whisper");
+    m_recognitionServiceComboBox->addItem("Google Speech API", "google");
+    m_recognitionServiceComboBox->addItem("Microsoft Azure", "azure");
+    m_recognitionServiceComboBox->addItem("Yandex SpeechKit", "yandex");
+    
+    formLayout->addRow(tr("Service:"), m_recognitionServiceComboBox);
+    
+    m_apiKeyEdit = new QLineEdit(serviceGroup);
+    m_apiKeyEdit->setEchoMode(QLineEdit::Password);
+    formLayout->addRow(tr("API Key:"), m_apiKeyEdit);
+    
+    m_azureRegionEdit = new QLineEdit(serviceGroup);
+    m_azureRegionEdit->setPlaceholderText(tr("e.g. westeurope, eastus"));
+    formLayout->addRow(tr("Azure Region:"), m_azureRegionEdit);
+    
+    m_usePublicApiCheckBox = new QCheckBox(tr("Use public API (no key required)"), serviceGroup);
+    m_usePublicApiCheckBox->setToolTip(tr("Use public API endpoints with limited functionality"));
+    
+    serviceLayout->addLayout(formLayout);
+    serviceLayout->addWidget(m_usePublicApiCheckBox);
+    
+    layout->addWidget(languageGroup);
+    layout->addWidget(serviceGroup);
     layout->addStretch();
     
     // Add tab to tab widget
     m_tabWidget->addTab(tab, tr("Language"));
+    
+    // Connect signals
+    connect(m_recognitionServiceComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), 
+            this, &SettingsDialog::handleRecognitionServiceChanged);
+    connect(m_usePublicApiCheckBox, &QCheckBox::toggled, this, &SettingsDialog::onUsePublicApiToggled);
+    
+    // Initialize visibility based on current selection
+    handleRecognitionServiceChanged(m_recognitionServiceComboBox->currentIndex());
+}
+
+void SettingsDialog::createAdvancedTab()
+{
+    QWidget* tab = new QWidget(this);
+    QVBoxLayout* layout = new QVBoxLayout(tab);
+    
+    // Debug settings
+    QGroupBox* debugGroup = new QGroupBox(tr("Debug Options"), tab);
+    QVBoxLayout* debugLayout = new QVBoxLayout(debugGroup);
+    
+    m_debugModeCheckBox = new QCheckBox(tr("Enable debug mode"), debugGroup);
+    debugLayout->addWidget(m_debugModeCheckBox);
+    
+    // Recognition settings
+    QGroupBox* recognitionGroup = new QGroupBox(tr("Recognition Settings"), tab);
+    QFormLayout* recognitionLayout = new QFormLayout(recognitionGroup);
+    
+    m_recognitionThresholdSpinBox = new QSpinBox(recognitionGroup);
+    m_recognitionThresholdSpinBox->setRange(0, 100);
+    m_recognitionThresholdSpinBox->setSingleStep(1);
+    m_recognitionThresholdSpinBox->setValue(50);
+    m_recognitionThresholdSpinBox->setSuffix("%");
+    recognitionLayout->addRow(tr("Voice activation threshold:"), m_recognitionThresholdSpinBox);
+    
+    m_customModelPathEdit = new QLineEdit(recognitionGroup);
+    m_customModelPathEdit->setPlaceholderText(tr("Leave empty for default model location"));
+    QPushButton* browseButton = new QPushButton(tr("Browse..."), recognitionGroup);
+    QHBoxLayout* modelPathLayout = new QHBoxLayout();
+    modelPathLayout->addWidget(m_customModelPathEdit);
+    modelPathLayout->addWidget(browseButton);
+    recognitionLayout->addRow(tr("Custom model path:"), modelPathLayout);
+    
+    connect(browseButton, &QPushButton::clicked, [this]() {
+        QString modelPath = QFileDialog::getExistingDirectory(this, 
+            tr("Select Model Directory"), 
+            QString(), 
+            QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+        
+        if (!modelPath.isEmpty()) {
+            m_customModelPathEdit->setText(modelPath);
+        }
+    });
+    
+    // Logging settings
+    QGroupBox* loggingGroup = new QGroupBox(tr("Logging"), tab);
+    QVBoxLayout* loggingLayout = new QVBoxLayout(loggingGroup);
+    
+    m_enableLoggingCheckBox = new QCheckBox(tr("Enable detailed logging"), loggingGroup);
+    loggingLayout->addWidget(m_enableLoggingCheckBox);
+    
+    QFormLayout* logLevelForm = new QFormLayout();
+    m_logLevelComboBox = new QComboBox(loggingGroup);
+    m_logLevelComboBox->addItem(tr("Error"), "error");
+    m_logLevelComboBox->addItem(tr("Warning"), "warning");
+    m_logLevelComboBox->addItem(tr("Info"), "info");
+    m_logLevelComboBox->addItem(tr("Debug"), "debug");
+    m_logLevelComboBox->addItem(tr("Verbose"), "verbose");
+    logLevelForm->addRow(tr("Log level:"), m_logLevelComboBox);
+    
+    loggingLayout->addLayout(logLevelForm);
+    
+    // Connect checkbox to enable/disable log level selection
+    connect(m_enableLoggingCheckBox, &QCheckBox::toggled, m_logLevelComboBox, &QComboBox::setEnabled);
+    
+    // Add groups to tab
+    layout->addWidget(debugGroup);
+    layout->addWidget(recognitionGroup);
+    layout->addWidget(loggingGroup);
+    layout->addStretch();
+    
+    // Add tab to tab widget
+    m_tabWidget->addTab(tab, tr("Advanced"));
+    
+    // Initial state
+    m_logLevelComboBox->setEnabled(false);
 }
 
 void SettingsDialog::loadSettings()
@@ -221,9 +335,9 @@ void SettingsDialog::loadSettings()
     QSettings settings;
     
     // General settings
-    m_startMinimizedCheckBox->setChecked(settings.value("general/start_minimized", false).toBool());
-    m_keepHistoryCheckBox->setChecked(settings.value("general/keep_history", true).toBool());
-    m_maxHistorySizeSpinBox->setValue(settings.value("general/max_history_size", 20).toInt());
+    m_startMinimizedCheckBox->setChecked(settings.value("general/startMinimized", false).toBool());
+    m_keepHistoryCheckBox->setChecked(settings.value("general/keepHistory", true).toBool());
+    m_maxHistorySizeSpinBox->setValue(settings.value("general/maxHistorySize", 100).toInt());
     
     // Hotkey settings
     settings.beginGroup("hotkeys");
@@ -260,9 +374,42 @@ void SettingsDialog::loadSettings()
     }
     
     // Language settings
-    m_autoCorrectCheckBox->setChecked(settings.value("language/auto_correct", true).toBool());
-    m_capitalizeFirstCheckBox->setChecked(settings.value("language/capitalize_first", true).toBool());
-    m_addPunctuationCheckBox->setChecked(settings.value("language/add_punctuation", true).toBool());
+    m_autoCorrectCheckBox->setChecked(settings.value("language/autoCorrect", true).toBool());
+    m_capitalizeFirstCheckBox->setChecked(settings.value("language/capitalizeFirst", true).toBool());
+    m_addPunctuationCheckBox->setChecked(settings.value("language/addPunctuation", true).toBool());
+    
+    // Speech recognition service settings
+    QString recognitionService = settings.value("recognition/service", "whisper").toString();
+    int serviceIndex = m_recognitionServiceComboBox->findData(recognitionService);
+    if (serviceIndex >= 0) {
+        m_recognitionServiceComboBox->setCurrentIndex(serviceIndex);
+    }
+    
+    m_apiKeyEdit->setText(settings.value("recognition/apiKey", "").toString());
+    m_apiKeyEdit->setEnabled(recognitionService != "whisper");
+    
+    // Загружаем значение региона Azure
+    m_azureRegionEdit->setText(settings.value("recognition/azureRegion", "westeurope").toString());
+    bool isAzure = (recognitionService == "azure");
+    m_azureRegionEdit->setVisible(isAzure);
+    m_azureRegionEdit->setEnabled(isAzure);
+    
+    // Advanced settings
+    m_debugModeCheckBox->setChecked(settings.value("advanced/debug_mode", false).toBool());
+    m_recognitionThresholdSpinBox->setValue(settings.value("advanced/recognition_threshold", 50).toInt());
+    m_customModelPathEdit->setText(settings.value("advanced/custom_model_path", "").toString());
+    m_enableLoggingCheckBox->setChecked(settings.value("advanced/enable_logging", false).toBool());
+    
+    QString logLevel = settings.value("advanced/log_level", "info").toString();
+    index = m_logLevelComboBox->findData(logLevel);
+    if (index >= 0) {
+        m_logLevelComboBox->setCurrentIndex(index);
+    }
+    m_logLevelComboBox->setEnabled(m_enableLoggingCheckBox->isChecked());
+    
+    // Public API settings
+    m_usePublicApiCheckBox->setChecked(settings.value("recognition/usePublicApi", false).toBool());
+    m_usePublicApiCheckBox->setEnabled(recognitionService != "whisper");
 }
 
 void SettingsDialog::saveSettings()
@@ -270,9 +417,9 @@ void SettingsDialog::saveSettings()
     QSettings settings;
     
     // General settings
-    settings.setValue("general/start_minimized", m_startMinimizedCheckBox->isChecked());
-    settings.setValue("general/keep_history", m_keepHistoryCheckBox->isChecked());
-    settings.setValue("general/max_history_size", m_maxHistorySizeSpinBox->value());
+    settings.setValue("general/startMinimized", m_startMinimizedCheckBox->isChecked());
+    settings.setValue("general/keepHistory", m_keepHistoryCheckBox->isChecked());
+    settings.setValue("general/maxHistorySize", m_maxHistorySizeSpinBox->value());
     
     // Hotkey settings
     settings.beginGroup("hotkeys");
@@ -291,9 +438,32 @@ void SettingsDialog::saveSettings()
     settings.setValue("audio/channels", m_channelsComboBox->currentData().toInt());
     
     // Language settings
-    settings.setValue("language/auto_correct", m_autoCorrectCheckBox->isChecked());
-    settings.setValue("language/capitalize_first", m_capitalizeFirstCheckBox->isChecked());
-    settings.setValue("language/add_punctuation", m_addPunctuationCheckBox->isChecked());
+    settings.setValue("language/autoCorrect", m_autoCorrectCheckBox->isChecked());
+    settings.setValue("language/capitalizeFirst", m_capitalizeFirstCheckBox->isChecked());
+    settings.setValue("language/addPunctuation", m_addPunctuationCheckBox->isChecked());
+    
+    // Speech recognition service settings
+    int serviceIndex = m_recognitionServiceComboBox->currentIndex();
+    if (serviceIndex >= 0) {
+        settings.setValue("recognition/service", m_recognitionServiceComboBox->itemData(serviceIndex).toString());
+    }
+    
+    settings.setValue("recognition/apiKey", m_apiKeyEdit->text());
+    settings.setValue("recognition/usePublicApi", m_usePublicApiCheckBox->isChecked());
+    
+    // Сохраняем регион Azure
+    settings.setValue("recognition/azureRegion", m_azureRegionEdit->text());
+    
+    // Advanced settings
+    settings.setValue("advanced/debug_mode", m_debugModeCheckBox->isChecked());
+    settings.setValue("advanced/recognition_threshold", m_recognitionThresholdSpinBox->value());
+    settings.setValue("advanced/custom_model_path", m_customModelPathEdit->text());
+    settings.setValue("advanced/enable_logging", m_enableLoggingCheckBox->isChecked());
+    
+    int logLevelIndex = m_logLevelComboBox->currentIndex();
+    if (logLevelIndex >= 0) {
+        settings.setValue("advanced/log_level", m_logLevelComboBox->itemData(logLevelIndex).toString());
+    }
 }
 
 void SettingsDialog::applySettings()
@@ -329,6 +499,23 @@ void SettingsDialog::restoreDefaults()
     m_autoCorrectCheckBox->setChecked(true);
     m_capitalizeFirstCheckBox->setChecked(true);
     m_addPunctuationCheckBox->setChecked(true);
+    
+    // Recognition service
+    m_recognitionServiceComboBox->setCurrentIndex(m_recognitionServiceComboBox->findData("whisper"));
+    m_apiKeyEdit->setText("");
+    m_apiKeyEdit->setEnabled(false);
+    
+    // Advanced settings
+    m_debugModeCheckBox->setChecked(false);
+    m_recognitionThresholdSpinBox->setValue(50);
+    m_customModelPathEdit->setText("");
+    m_enableLoggingCheckBox->setChecked(false);
+    m_logLevelComboBox->setCurrentIndex(m_logLevelComboBox->findData("info"));
+    m_logLevelComboBox->setEnabled(false);
+    
+    // Public API settings
+    m_usePublicApiCheckBox->setChecked(false);
+    m_usePublicApiCheckBox->setEnabled(false);
 }
 
 void SettingsDialog::onAccept()
@@ -365,4 +552,47 @@ void SettingsDialog::updateHotkeyLabels()
 {
     // This method would update the hotkey labels
     // For this simplified implementation, we don't implement dynamic label updating
+}
+
+void SettingsDialog::handleRecognitionServiceChanged(int index)
+{
+    QString service = m_recognitionServiceComboBox->itemData(index).toString();
+    
+    // Show/hide Azure region input based on service
+    bool isAzure = (service == "azure");
+    m_azureRegionEdit->setVisible(isAzure);
+    m_tabWidget->parentWidget()->findChild<QLabel*>()->setVisible(isAzure);
+    
+    // Show/hide API key input based on service
+    bool needsApiKey = (service != "whisper");
+    m_apiKeyEdit->setVisible(needsApiKey);
+    
+    // Update labels and tooltips
+    if (service == "google") {
+        m_apiKeyEdit->setPlaceholderText(tr("Google Cloud API Key"));
+        m_usePublicApiCheckBox->setEnabled(true);
+    } else if (service == "azure") {
+        m_apiKeyEdit->setPlaceholderText(tr("Azure Speech Service Key"));
+        m_usePublicApiCheckBox->setEnabled(true);
+    } else if (service == "yandex") {
+        m_apiKeyEdit->setPlaceholderText(tr("Yandex SpeechKit API Key"));
+        m_usePublicApiCheckBox->setEnabled(true);
+    } else {
+        m_usePublicApiCheckBox->setEnabled(false);
+    }
+    
+    // Update UI based on public API checkbox
+    onUsePublicApiToggled(m_usePublicApiCheckBox->isChecked());
+}
+
+void SettingsDialog::onUsePublicApiToggled(bool checked) {
+    if (checked) {
+        m_apiKeyEdit->setEnabled(false);
+        if (m_recognitionServiceComboBox->currentData().toString() == "azure") {
+            m_azureRegionEdit->setEnabled(false);
+        }
+    } else {
+        m_apiKeyEdit->setEnabled(true);
+        m_azureRegionEdit->setEnabled(true);
+    }
 } 

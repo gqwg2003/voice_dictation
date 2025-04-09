@@ -1,0 +1,12 @@
+{
+    "build_date": "2025-04-10",
+    "build_number": "1",
+    "build_time": "01:03:44",
+    "commit_hash": "unknown",
+    "display_version": "1.0.0",
+    "features": {
+        "audio_visualization": true,
+        "clipboard_integration": true,
+        "multilingual": true
+    }
+}

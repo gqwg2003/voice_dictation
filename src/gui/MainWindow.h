@@ -44,6 +44,8 @@ private slots:
     void onExitAction();
     void updateAudioVisualization();
     void onSpeechRecognized(const QString &text);
+    void onRecognitionError(const QString &errorMessage);
+    void onAudioError(const QString &errorMessage);
     void onHotkeyPressed(const QString &action);
     void applySettings();
 
@@ -64,6 +66,7 @@ private:
     QPushButton *m_stopButton;
     QPushButton *m_clearButton;
     QPushButton *m_copyButton;
+    QPushButton *m_settingsButton;
     QComboBox *m_languageComboBox;
     QLabel *m_statusLabel;
     AudioVisualizer *m_audioVisualizer;

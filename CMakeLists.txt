@@ -8,12 +8,69 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 # Find required packages
-find_package(Qt6 COMPONENTS Core Widgets Multimedia REQUIRED)
+find_package(Qt6 COMPONENTS Core Widgets Multimedia Network REQUIRED)
 
 # Always download nlohmann_json
 include(FetchContent)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
 FetchContent_MakeAvailable(json)
+
+# Try to find Whisper library
+option(USE_WHISPER "Use Whisper library for speech recognition" ON)
+if(USE_WHISPER)
+    # Set Whisper paths - try to find in common locations
+    set(WHISPER_ROOT_DIR "" CACHE PATH "Root directory for Whisper library")
+    
+    # Look in common locations if not specified
+    if(NOT WHISPER_ROOT_DIR)
+        # Windows common locations
+        if(WIN32)
+            list(APPEND WHISPER_SEARCH_PATHS
+                "C:/Program Files/whisper"
+                "C:/Program Files (x86)/whisper"
+                "C:/whisper"
+                "${CMAKE_SOURCE_DIR}/third_party/whisper"
+            )
+        endif()
+        
+        # Linux/macOS common locations
+        if(UNIX)
+            list(APPEND WHISPER_SEARCH_PATHS
+                "/usr/local/include/whisper"
+                "/usr/include/whisper"
+                "${CMAKE_SOURCE_DIR}/third_party/whisper"
+                "$ENV{HOME}/whisper"
+            )
+        endif()
+        
+        # Try to find whisper.h
+        find_path(WHISPER_INCLUDE_DIR whisper.h
+            PATHS ${WHISPER_SEARCH_PATHS}
+            PATH_SUFFIXES include 
+        )
+        
+        # Try to find library
+        find_library(WHISPER_LIBRARY
+            NAMES whisper whisper-cpp libwhisper libwhisper-cpp
+            PATHS ${WHISPER_SEARCH_PATHS}
+            PATH_SUFFIXES lib
+        )
+        
+        if(WHISPER_INCLUDE_DIR AND WHISPER_LIBRARY)
+            set(WHISPER_FOUND TRUE)
+            message(STATUS "Found Whisper: ${WHISPER_LIBRARY}")
+            message(STATUS "Whisper include: ${WHISPER_INCLUDE_DIR}")
+        else()
+            set(WHISPER_FOUND FALSE)
+            message(STATUS "Whisper not found, speech recognition will use fallback methods")
+        endif()
+    endif()
+    
+    if(WHISPER_FOUND)
+        add_definitions(-DHAVE_WHISPER)
+        include_directories(${WHISPER_INCLUDE_DIR})
+    endif()
+endif()
 
 # Add include directories
 include_directories(${CMAKE_SOURCE_DIR})
@@ -60,14 +117,26 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt6::Core
     Qt6::Widgets
     Qt6::Multimedia
+    Qt6::Network
     nlohmann_json::nlohmann_json
 )
+
+# Link Whisper if found
+if(WHISPER_FOUND)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${WHISPER_LIBRARY})
+endif()
 
 # Install target
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 
+# Install models directory
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/models DESTINATION ${CMAKE_INSTALL_PREFIX} OPTIONAL)
+
 # Copy resources
 file(COPY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
+
+# Create models directory for whisper models
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/models)
 
 # Platform specific settings
 if(WIN32)
@@ -85,4 +154,16 @@ if(APPLE)
         MACOSX_BUNDLE_GUI_IDENTIFIER "com.voicedictation.app"
         MACOSX_BUNDLE_BUNDLE_NAME "Voice Dictation"
     )
+endif()
+
+# Output configuration information
+message(STATUS "Project configuration:")
+message(STATUS "  CXX Standard: ${CMAKE_CXX_STANDARD}")
+message(STATUS "  Qt version: ${Qt6_VERSION}")
+message(STATUS "  Whisper support: ${WHISPER_FOUND}")
+
+# Create models directory with README
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/models)
+    file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/models)
+    file(WRITE ${CMAKE_SOURCE_DIR}/models/README.txt "Place Whisper models here.\n\nRecommended models:\n- ggml-base-en.bin for English\n- ggml-base-ru.bin for Russian\n\nModels can be downloaded from: https://huggingface.co/ggerganov/whisper.cpp")
 endif() 

@@ -44,7 +44,11 @@ template <> constexpr inline auto SettingsDialog::qt_create_metaobjectdata<qt_me
         "",
         "onAccept",
         "onReject",
-        "onRestoreDefaults"
+        "onRestoreDefaults",
+        "handleRecognitionServiceChanged",
+        "index",
+        "onUsePublicApiToggled",
+        "checked"
     };
 
     QtMocHelpers::UintData qt_methods {
@@ -56,6 +60,14 @@ template <> constexpr inline auto SettingsDialog::qt_create_metaobjectdata<qt_me
         QtMocHelpers::SlotData<void()>(4, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'onRestoreDefaults'
         QtMocHelpers::SlotData<void()>(5, 2, QMC::AccessPrivate, QMetaType::Void),
+        // Slot 'handleRecognitionServiceChanged'
+        QtMocHelpers::SlotData<void(int)>(6, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { QMetaType::Int, 7 },
+        }}),
+        // Slot 'onUsePublicApiToggled'
+        QtMocHelpers::SlotData<void(bool)>(8, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { QMetaType::Bool, 9 },
+        }}),
     };
     QtMocHelpers::UintData qt_properties {
     };
@@ -83,6 +95,8 @@ void SettingsDialog::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _
         case 1: _t->onAccept(); break;
         case 2: _t->onReject(); break;
         case 3: _t->onRestoreDefaults(); break;
+        case 4: _t->handleRecognitionServiceChanged((*reinterpret_cast< std::add_pointer_t<int>>(_a[1]))); break;
+        case 5: _t->onUsePublicApiToggled((*reinterpret_cast< std::add_pointer_t<bool>>(_a[1]))); break;
         default: ;
         }
     }
@@ -111,14 +125,14 @@ int SettingsDialog::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 4)
+        if (_id < 6)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 4;
+        _id -= 6;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 4)
+        if (_id < 6)
             *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
-        _id -= 4;
+        _id -= 6;
     }
     return _id;
 }

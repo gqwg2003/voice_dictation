@@ -507,4 +507,6 @@ CMakeFiles/VoiceDictation.dir/VoiceDictation_autogen/mocs_compilation.cpp.obj: \
  C:/Qt/6.9.0/mingw_64/include/QtWidgets/QGroupBox \
  C:/Qt/6.9.0/mingw_64/include/QtWidgets/qgroupbox.h \
  C:/Qt/6.9.0/mingw_64/include/QtWidgets/QKeySequenceEdit \
- C:/Qt/6.9.0/mingw_64/include/QtWidgets/qkeysequenceedit.h
+ C:/Qt/6.9.0/mingw_64/include/QtWidgets/qkeysequenceedit.h \
+ C:/Qt/6.9.0/mingw_64/include/QtWidgets/QLineEdit \
+ C:/Qt/6.9.0/mingw_64/include/QtWidgets/qlineedit.h

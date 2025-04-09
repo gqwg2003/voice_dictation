@@ -2587,6 +2587,7 @@ D:/voice multilingual/src/gui/SettingsDialog.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtGui/qkeysequence.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtGui/qpaintdevice.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtGui/qpalette.h
+ mdp:C:/Qt/6.9.0/mingw_64/include/QtGui/qpen.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtGui/qpicture.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtGui/qpixelformat.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtGui/qpixmap.h
@@ -2594,7 +2595,10 @@ D:/voice multilingual/src/gui/SettingsDialog.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtGui/qregion.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtGui/qrgb.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtGui/qrgba64.h
+ mdp:C:/Qt/6.9.0/mingw_64/include/QtGui/qtextcursor.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtGui/qtextdocument.h
+ mdp:C:/Qt/6.9.0/mingw_64/include/QtGui/qtextformat.h
+ mdp:C:/Qt/6.9.0/mingw_64/include/QtGui/qtextoption.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtGui/qtgui-config.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtGui/qtguiexports.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtGui/qtguiglobal.h
@@ -2608,6 +2612,7 @@ D:/voice multilingual/src/gui/SettingsDialog.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/QGroupBox
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/QKeySequenceEdit
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/QLabel
+ mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/QLineEdit
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/QPushButton
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/QSpinBox
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/QTabWidget
@@ -2622,6 +2627,7 @@ D:/voice multilingual/src/gui/SettingsDialog.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qgroupbox.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qkeysequenceedit.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qlabel.h
+ mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qlineedit.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qpushbutton.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qrubberband.h
  mdp:C:/Qt/6.9.0/mingw_64/include/QtWidgets/qsizepolicy.h

@@ -419,6 +419,12 @@ CMakeFiles/VoiceDictation.dir/src/gui/SettingsDialog.cpp.obj: \
  C:/Qt/6.9.0/mingw_64/include/QtWidgets/qkeysequenceedit.h \
  C:/Qt/6.9.0/mingw_64/include/QtCore/QMap \
  C:/Qt/6.9.0/mingw_64/include/QtCore/qmap.h \
+ C:/Qt/6.9.0/mingw_64/include/QtWidgets/QLineEdit \
+ C:/Qt/6.9.0/mingw_64/include/QtWidgets/qlineedit.h \
+ C:/Qt/6.9.0/mingw_64/include/QtGui/qtextcursor.h \
+ C:/Qt/6.9.0/mingw_64/include/QtGui/qtextformat.h \
+ C:/Qt/6.9.0/mingw_64/include/QtGui/qpen.h \
+ C:/Qt/6.9.0/mingw_64/include/QtGui/qtextoption.h \
  D:/voice\ multilingual/src/utils/Logger.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/fstream \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/istream \
@@ -442,15 +448,24 @@ CMakeFiles/VoiceDictation.dir/src/gui/SettingsDialog.cpp.obj: \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/std_mutex.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/unique_lock.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/iostream \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/QString \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qstring.h \
  D:/voice\ multilingual/src/core/HotkeyManager.h \
  C:/Qt/6.9.0/mingw_64/include/QtCore/QObject \
  C:/Qt/6.9.0/mingw_64/include/QtCore/qobject.h \
- C:/Qt/6.9.0/mingw_64/include/QtCore/QString \
- C:/Qt/6.9.0/mingw_64/include/QtCore/qstring.h \
  C:/Qt/6.9.0/mingw_64/include/QtGui/QKeySequence \
  C:/Qt/6.9.0/mingw_64/include/QtGui/qkeysequence.h \
  C:/Qt/6.9.0/mingw_64/include/QtCore/QAbstractNativeEventFilter \
  C:/Qt/6.9.0/mingw_64/include/QtCore/qabstractnativeeventfilter.h \
+ D:/voice\ multilingual/src/core/SpeechRecognizer.h \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/QThread \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qthread.h \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qdeadlinetimer.h \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qelapsedtimer.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/future \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/condition_variable \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/atomic_futex.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/std_thread.h \
  C:/Qt/6.9.0/mingw_64/include/QtWidgets/QVBoxLayout \
  C:/Qt/6.9.0/mingw_64/include/QtWidgets/qboxlayout.h \
  C:/Qt/6.9.0/mingw_64/include/QtWidgets/qlayout.h \
@@ -479,4 +494,30 @@ CMakeFiles/VoiceDictation.dir/src/gui/SettingsDialog.cpp.obj: \
  C:/Qt/6.9.0/mingw_64/include/QtMultimedia/qaudiodevice.h \
  C:/Qt/6.9.0/mingw_64/include/QtMultimedia/qtaudio.h \
  C:/Qt/6.9.0/mingw_64/include/QtMultimedia/qaudio.h \
- C:/Qt/6.9.0/mingw_64/include/QtMultimedia/qaudioformat.h
+ C:/Qt/6.9.0/mingw_64/include/QtMultimedia/qaudioformat.h \
+ C:/Qt/6.9.0/mingw_64/include/QtWidgets/QFileDialog \
+ C:/Qt/6.9.0/mingw_64/include/QtWidgets/qfiledialog.h \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qdir.h \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qdirlisting.h \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qfiledevice.h \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qdatetime.h \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qcalendar.h \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qfile.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/filesystem \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/fs_fwd.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/fs_path.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/locale \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/locale_facets_nonio.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32/bits/time_members.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32/bits/messages_members.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/locale_facets_nonio.tcc \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/locale_conv.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/iomanip \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/quoted_string.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/sstream \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/sstream.tcc \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/codecvt \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/fs_dir.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/fs_ops.h \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qfileinfo.h \
+ C:/Qt/6.9.0/mingw_64/include/QtCore/qtimezone.h

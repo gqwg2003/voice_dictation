@@ -410,6 +410,9 @@ Qt6ZlibPrivate_DIR:PATH=C:/Qt/6.9.0/mingw_64/lib/cmake/Qt6ZlibPrivate
 //The directory containing a CMake configuration file for Qt6.
 Qt6_DIR:PATH=C:/Qt/6.9.0/mingw_64/lib/cmake/Qt6
 
+//Use Whisper library for speech recognition
+USE_WHISPER:BOOL=ON
+
 //Value Computed by CMake
 VoiceDictation_BINARY_DIR:STATIC=D:/voice multilingual/build_new
 
@@ -430,6 +433,15 @@ Vulkan_INCLUDE_DIR:PATH=Vulkan_INCLUDE_DIR-NOTFOUND
 
 //Path to a library.
 Vulkan_LIBRARY:FILEPATH=Vulkan_LIBRARY-NOTFOUND
+
+//Path to a file.
+WHISPER_INCLUDE_DIR:PATH=WHISPER_INCLUDE_DIR-NOTFOUND
+
+//Path to a library.
+WHISPER_LIBRARY:FILEPATH=WHISPER_LIBRARY-NOTFOUND
+
+//Root directory for Whisper library
+WHISPER_ROOT_DIR:PATH=
 
 //Path to a program.
 WINDEPLOYQT_EXECUTABLE:FILEPATH=C:/Qt/6.9.0/mingw_64/bin/windeployqt.exe

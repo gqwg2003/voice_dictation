@@ -321,8 +321,8 @@ VoiceDictation.exe: CMakeFiles/VoiceDictation.dir/VoiceDictation_autogen/3YJK5W5
 VoiceDictation.exe: CMakeFiles/VoiceDictation.dir/build.make
 VoiceDictation.exe: C:/Qt/6.9.0/mingw_64/lib/libQt6Widgets.a
 VoiceDictation.exe: C:/Qt/6.9.0/mingw_64/lib/libQt6Multimedia.a
-VoiceDictation.exe: C:/Qt/6.9.0/mingw_64/lib/libQt6Gui.a
 VoiceDictation.exe: C:/Qt/6.9.0/mingw_64/lib/libQt6Network.a
+VoiceDictation.exe: C:/Qt/6.9.0/mingw_64/lib/libQt6Gui.a
 VoiceDictation.exe: C:/Qt/6.9.0/mingw_64/lib/libQt6Core.a
 VoiceDictation.exe: C:/Qt/6.9.0/mingw_64/lib/libQt6EntryPoint.a
 VoiceDictation.exe: CMakeFiles/VoiceDictation.dir/linkLibs.rsp
