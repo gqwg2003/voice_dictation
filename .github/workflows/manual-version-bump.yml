@@ -1,0 +1,134 @@
+name: Manual Version Bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'Type of version bump'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - prerelease
+      prerelease_id:
+        description: 'Prerelease identifier (required for prerelease bump)'
+        required: false
+        default: ''
+        type: string
+      commit_message:
+        description: 'Commit/tag message'
+        required: false
+        default: 'Manual version bump'
+        type: string
+
+jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Get current version
+        id: current_version
+        run: |
+          CURRENT_VERSION=$(python scripts/bump_version.py | grep "Current version:" | cut -d " " -f 3)
+          echo "Current version: $CURRENT_VERSION"
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Bump version
+        id: bump_version
+        run: |
+          # Prepare the bump command
+          BUMP_CMD="python scripts/bump_version.py ${{ github.event.inputs.bump_type }}"
+          
+          # Add prerelease ID if needed
+          if [ "${{ github.event.inputs.bump_type }}" = "prerelease" ]; then
+            if [ -z "${{ github.event.inputs.prerelease_id }}" ]; then
+              echo "Error: Prerelease ID is required for prerelease bump"
+              exit 1
+            fi
+            BUMP_CMD="$BUMP_CMD ${{ github.event.inputs.prerelease_id }}"
+          fi
+          
+          # Add message
+          BUMP_CMD="$BUMP_CMD -m '${{ github.event.inputs.commit_message }}'"
+          
+          # Run dry-run first to get the new version
+          NEW_VERSION=$(python scripts/bump_version.py ${{ github.event.inputs.bump_type }} ${{ github.event.inputs.prerelease_id || '' }} --dry-run | grep "New version:" | cut -d " " -f 3)
+          echo "New version will be: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          
+          # Create simple script to update version_data.json
+          cat > update_version.py << 'EOL'
+import json
+import os
+import sys
+from datetime import datetime
+
+new_version = sys.argv[1]
+version_file = 'utils/version_data.json'
+
+with open(version_file, 'r', encoding='utf-8') as f:
+    data = json.load(f)
+
+data['version'] = new_version
+data['display_version'] = new_version
+data['is_prerelease'] = '-' in new_version
+data['updated_at'] = datetime.now().isoformat()
+data['build_number'] = data.get('build_number', 0) + 1
+data['app_info']['version'] = new_version
+data['app_info']['version_full'] = new_version
+data['app_info']['is_prerelease'] = '-' in new_version
+
+with open(version_file, 'w', encoding='utf-8') as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+EOL
+          
+          # Update version data
+          python update_version.py "$NEW_VERSION"
+          
+          # Execute the bump command
+          eval $BUMP_CMD
+          
+          # Push changes
+          git add utils/version_data.json
+          git commit -m "Update version data to $NEW_VERSION [skip ci]"
+          git push origin main
+          git push origin "$NEW_VERSION"
+        shell: bash
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.bump_version.outputs.new_version }}
+          release_name: Version ${{ steps.bump_version.outputs.new_version }}
+          body: |
+            Version bump from ${{ steps.current_version.outputs.current_version }} to ${{ steps.bump_version.outputs.new_version }}
+            
+            ${{ github.event.inputs.commit_message }}
+          draft: false
+          prerelease: ${{ contains(steps.bump_version.outputs.new_version, '-') }} 
