@@ -72,6 +72,7 @@ private:
         return words;
     }
 
+public:
     // Исправление регистра первых букв предложений
     static std::string fix_capitalization(const std::string& text) {
         if (text.empty()) return text;
@@ -126,7 +127,6 @@ private:
         return result;
     }
 
-public:
     // Основной метод обработки текста
     static std::string process(
         const std::string& text,

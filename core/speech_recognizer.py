@@ -22,7 +22,7 @@ import numpy as np
 from PyQt6.QtCore import QThread, pyqtSignal
 
 # Project imports
-from core.hybrid_manager import get_audio_processor, get_text_processor
+from core.hybrid_manager import get_audio_processor, get_text_processor, get_speech_preprocessor
 
 # Configure logging
 logging.basicConfig(
@@ -274,6 +274,24 @@ class SpeechRecognizer(QThread):
             self.listening_ended.emit()
             self.processing_started.emit()
             
+            # Get raw audio data
+            raw_data = audio.get_raw_data()
+            
+            # Apply preprocessing if C++ extension is available
+            speech_preprocessor = get_speech_preprocessor()
+            if speech_preprocessor is not None:
+                try:
+                    # Optimize audio for recognition
+                    raw_data = speech_preprocessor.optimize_for_recognition(
+                        raw_data, 
+                        noise_level=0.01, 
+                        silence_threshold=0.02
+                    )
+                    # Update audio with optimized data
+                    audio._data = raw_data
+                except Exception as e:
+                    logger.warning(f"Speech preprocessing failed: {e}")
+            
             # Process the audio
             try:
                 text = self.recognizer.recognize_google(
@@ -300,14 +318,10 @@ class SpeechRecognizer(QThread):
                 logger.error(f"Could not request results from Google Speech Recognition service: {e}")
                 self.error_occurred.emit("Ошибка сервиса распознавания речи")
                 self.processing_ended.emit(False)
-            except Exception as e:
-                logger.error(f"Error during speech recognition: {e}")
-                self.error_occurred.emit("Ошибка при распознавании речи")
-                self.processing_ended.emit(False)
-                
         except Exception as e:
-            logger.error(f"Error in recognition process: {e}")
-            self.error_occurred.emit(str(e))
+            error_msg = f"Error in recognition process: {str(e)}"
+            logger.error(error_msg)
+            self.error_occurred.emit(error_msg)
             self.processing_ended.emit(False)
     
     def _start_audio_monitor(self, source: sr.Microphone) -> None:

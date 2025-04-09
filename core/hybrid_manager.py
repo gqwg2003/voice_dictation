@@ -26,7 +26,8 @@ class HybridManager:
         self.system_info = self._get_system_info()
         self.extensions_available = {
             'audio_processor': False,
-            'text_processor': False
+            'text_processor': False,
+            'speech_preprocessor': False
         }
         self.modules = {}
         self.fallback_modules = {}
@@ -52,7 +53,7 @@ class HybridManager:
         release_dir = os.path.join(extensions_dir, 'Release')
         
         # Список расширений для проверки
-        extensions = ['audio_processor', 'text_processor']
+        extensions = ['audio_processor', 'text_processor', 'speech_preprocessor']
         
         for ext in extensions:
             # Пытаемся загрузить C++ расширение
@@ -93,6 +94,9 @@ class HybridManager:
             elif module_name == 'text_processor':
                 from core.fallbacks.text_processor_py import TextProcessor
                 self.fallback_modules[module_name] = TextProcessor
+            elif module_name == 'speech_preprocessor':
+                from core.fallbacks.speech_preprocessor_py import SpeechPreprocessor
+                self.fallback_modules[module_name] = SpeechPreprocessor
             logger.info(f"Loaded Python fallback for {module_name}")
         except ImportError as e:
             logger.error(f"Failed to load fallback for {module_name}: {e}")
@@ -108,6 +112,12 @@ class HybridManager:
         if self.extensions_available['text_processor']:
             return self.modules['text_processor'].TextProcessor
         return self.fallback_modules.get('text_processor')
+        
+    def get_speech_preprocessor(self):
+        """Получение экземпляра SpeechPreprocessor (C++ или Python)."""
+        if self.extensions_available['speech_preprocessor']:
+            return self.modules['speech_preprocessor'].SpeechPreprocessor
+        return self.fallback_modules.get('speech_preprocessor')
     
     def is_hybrid_mode_available(self) -> bool:
         """Проверка доступности гибридного режима."""
@@ -159,6 +169,9 @@ def get_audio_processor():
 
 def get_text_processor():
     return hybrid_manager.get_text_processor()
+
+def get_speech_preprocessor():
+    return hybrid_manager.get_speech_preprocessor()
 
 def get_mode_info():
     return hybrid_manager.get_mode_info()

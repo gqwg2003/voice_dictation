@@ -180,6 +180,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
+    <ProjectReference Include="D:\voice multilingual\core\cpp_extensions\build\speech_preprocessor.vcxproj">
+      <Project>{7D122BBB-49FF-3BEE-B81B-5EDD6944A04D}</Project>
+      <Name>speech_preprocessor</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
     <ProjectReference Include="D:\voice multilingual\core\cpp_extensions\build\text_processor.vcxproj">
       <Project>{1CF3584E-E3CF-3E71-A90A-B12C41ADF13B}</Project>
       <Name>text_processor</Name>

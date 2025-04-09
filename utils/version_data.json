@@ -1,15 +1,15 @@
 {
-  "version": "v2.8.9",
-  "display_version": "v2.8.9",
-  "is_prerelease": false,
-  "updated_at": "2025-04-09T02:23:55.180461",
-  "build_number": 147,
+  "version": "v2.9.7-544e0d8",
+  "display_version": "v2.9.7-544e0d8",
+  "is_prerelease": true,
+  "updated_at": "2025-04-09T10:40:43.494750",
+  "build_number": 160,
   "app_info": {
-    "version": "v2.8.9",
-    "version_full": "v2.8.9",
-    "is_prerelease": false,
-    "name": "Голосовой Ввод",
-    "copyright": "© 2025",
+    "version": "v2.9.7-544e0d8",
+    "version_full": "v2.9.7-544e0d8",
+    "is_prerelease": true,
+    "name": "\u0413\u043e\u043b\u043e\u0441\u043e\u0432\u043e\u0439 \u0412\u0432\u043e\u0434",
+    "copyright": "\u00a9 2025",
     "website": "https://github.com/gqwg2003/voice_dictation"
   }
 }

@@ -25,6 +25,7 @@ message(STATUS "Workspace directory: ${WORKSPACE_DIR}")
 # Исходные файлы C++
 add_library(audio_processor MODULE audio_processor.cpp)
 add_library(text_processor MODULE text_processor.cpp)
+add_library(speech_preprocessor MODULE speech_preprocessor.cpp)
 
 # Настройка выходных данных для соответствия структуре модулей Python
 set_target_properties(audio_processor PROPERTIES
@@ -45,27 +46,41 @@ set_target_properties(text_processor PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
 )
 
+set_target_properties(speech_preprocessor PROPERTIES
+    PREFIX ""
+    OUTPUT_NAME "speech_preprocessor"
+    SUFFIX ".pyd"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+)
+
 # Настройки для Unix-систем
 if(UNIX)
     set_target_properties(audio_processor PROPERTIES SUFFIX ".so")
     set_target_properties(text_processor PROPERTIES SUFFIX ".so")
+    set_target_properties(speech_preprocessor PROPERTIES SUFFIX ".so")
 endif()
 
 # Линковка с PyBind11
 target_link_libraries(audio_processor PRIVATE pybind11::module)
 target_link_libraries(text_processor PRIVATE pybind11::module)
+target_link_libraries(speech_preprocessor PRIVATE pybind11::module)
 
 # Добавление директорий с заголовочными файлами Python
 target_include_directories(audio_processor PRIVATE ${Python_INCLUDE_DIRS})
 target_include_directories(text_processor PRIVATE ${Python_INCLUDE_DIRS})
+target_include_directories(speech_preprocessor PRIVATE ${Python_INCLUDE_DIRS})
 
 # Указание warning уровня
 if(MSVC)
     target_compile_options(audio_processor PRIVATE /W3)
     target_compile_options(text_processor PRIVATE /W3)
+    target_compile_options(speech_preprocessor PRIVATE /W3)
 else()
     target_compile_options(audio_processor PRIVATE -Wall -Wextra)
     target_compile_options(text_processor PRIVATE -Wall -Wextra)
+    target_compile_options(speech_preprocessor PRIVATE -Wall -Wextra)
 endif()
 
 # Копирование собранных модулей
@@ -77,6 +92,11 @@ add_custom_command(TARGET audio_processor POST_BUILD
 add_custom_command(TARGET text_processor POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${WORKSPACE_DIR}/core/cpp_extensions/build/Release
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:text_processor> ${WORKSPACE_DIR}/core/cpp_extensions/build/Release/
+)
+
+add_custom_command(TARGET speech_preprocessor POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${WORKSPACE_DIR}/core/cpp_extensions/build/Release
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:speech_preprocessor> ${WORKSPACE_DIR}/core/cpp_extensions/build/Release/
 )
 
 message(STATUS "CMake configuration completed for C++ extensions") 
