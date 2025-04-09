@@ -18,6 +18,14 @@ static int g_hotkey_counter = 0;
 // Хранилище функций обратного вызова для горячих клавиш
 static std::unordered_map<int, std::function<void()>> g_hotkey_callbacks;
 
+// Глобальный хук для обработки клавиатуры
+#ifdef _WIN32
+static HHOOK g_keyboard_hook = NULL;
+#endif
+
+// Глобальная переменная для хранения активных комбинаций
+static std::unordered_map<int, int> g_active_modifiers;
+
 class HotkeyManager {
 private:
     struct Hotkey {
@@ -112,14 +120,76 @@ public:
 
     ~HotkeyManager() {
         unregister_all_hotkeys();
+        stop_listening();
     }
 
     // Обработчик горячих клавиш для Windows
 #ifdef _WIN32
     static LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
-        if (nCode == HC_ACTION && (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)) {
+        if (nCode == HC_ACTION) {
             KBDLLHOOKSTRUCT* kbStruct = reinterpret_cast<KBDLLHOOKSTRUCT*>(lParam);
-            // Обработка события клавиатуры...
+            
+            if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
+                // Обрабатываем нажатия модификаторов
+                if (kbStruct->vkCode == VK_CONTROL || kbStruct->vkCode == VK_LCONTROL || kbStruct->vkCode == VK_RCONTROL) {
+                    g_active_modifiers[MOD_CONTROL] = 1;
+                } else if (kbStruct->vkCode == VK_MENU || kbStruct->vkCode == VK_LMENU || kbStruct->vkCode == VK_RMENU) {
+                    g_active_modifiers[MOD_ALT] = 1;
+                } else if (kbStruct->vkCode == VK_SHIFT || kbStruct->vkCode == VK_LSHIFT || kbStruct->vkCode == VK_RSHIFT) {
+                    g_active_modifiers[MOD_SHIFT] = 1;
+                } else if (kbStruct->vkCode == VK_LWIN || kbStruct->vkCode == VK_RWIN) {
+                    g_active_modifiers[MOD_WIN] = 1;
+                } else {
+                    // Проверяем все зарегистрированные хоткеи
+                    for (const auto& callback_pair : g_hotkey_callbacks) {
+                        int hotkey_id = callback_pair.first;
+                        
+                        // Найдем соответствующую горячую клавишу по ID
+                        for (const auto& hotkey : HotkeyManager().registered_hotkeys) {
+                            if (hotkey.id == hotkey_id && hotkey.key_code == kbStruct->vkCode) {
+                                // Проверяем, совпадают ли активные модификаторы
+                                bool modifiers_match = true;
+                                
+                                // Проверка Ctrl
+                                if ((hotkey.modifiers & MOD_CONTROL) && !g_active_modifiers[MOD_CONTROL]) {
+                                    modifiers_match = false;
+                                }
+                                
+                                // Проверка Alt
+                                if ((hotkey.modifiers & MOD_ALT) && !g_active_modifiers[MOD_ALT]) {
+                                    modifiers_match = false;
+                                }
+                                
+                                // Проверка Shift
+                                if ((hotkey.modifiers & MOD_SHIFT) && !g_active_modifiers[MOD_SHIFT]) {
+                                    modifiers_match = false;
+                                }
+                                
+                                // Проверка Win
+                                if ((hotkey.modifiers & MOD_WIN) && !g_active_modifiers[MOD_WIN]) {
+                                    modifiers_match = false;
+                                }
+                                
+                                // Если все модификаторы совпадают, вызываем callback
+                                if (modifiers_match) {
+                                    callback_pair.second();
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
+                // Сбрасываем модификаторы при отпускании
+                if (kbStruct->vkCode == VK_CONTROL || kbStruct->vkCode == VK_LCONTROL || kbStruct->vkCode == VK_RCONTROL) {
+                    g_active_modifiers[MOD_CONTROL] = 0;
+                } else if (kbStruct->vkCode == VK_MENU || kbStruct->vkCode == VK_LMENU || kbStruct->vkCode == VK_RMENU) {
+                    g_active_modifiers[MOD_ALT] = 0;
+                } else if (kbStruct->vkCode == VK_SHIFT || kbStruct->vkCode == VK_LSHIFT || kbStruct->vkCode == VK_RSHIFT) {
+                    g_active_modifiers[MOD_SHIFT] = 0;
+                } else if (kbStruct->vkCode == VK_LWIN || kbStruct->vkCode == VK_RWIN) {
+                    g_active_modifiers[MOD_WIN] = 0;
+                }
+            }
         }
         return CallNextHookEx(NULL, nCode, wParam, lParam);
     }
@@ -134,21 +204,20 @@ public:
         }
 
         int id = ++g_hotkey_counter;
-        if (RegisterHotKey(NULL, id, modifiers, key_code)) {
-            Hotkey hotkey;
-            hotkey.id = id;
-            hotkey.key_combo = key_combo;
-            hotkey.key_code = key_code;
-            hotkey.modifiers = modifiers;
-            registered_hotkeys.push_back(hotkey);
-            
-            // Сохраняем callback
-            g_hotkey_callbacks[id] = callback;
-            
-            return true;
-        }
-#endif
+        Hotkey hotkey;
+        hotkey.id = id;
+        hotkey.key_combo = key_combo;
+        hotkey.key_code = key_code;
+        hotkey.modifiers = modifiers;
+        registered_hotkeys.push_back(hotkey);
+        
+        // Сохраняем callback
+        g_hotkey_callbacks[id] = callback;
+        
+        return true;
+#else
         return false;
+#endif
     }
 
     // Отмена регистрации горячей клавиши
@@ -156,7 +225,6 @@ public:
 #ifdef _WIN32
         for (auto it = registered_hotkeys.begin(); it != registered_hotkeys.end(); ++it) {
             if (it->key_combo == key_combo) {
-                UnregisterHotKey(NULL, it->id);
                 g_hotkey_callbacks.erase(it->id);
                 registered_hotkeys.erase(it);
                 return true;
@@ -169,10 +237,7 @@ public:
     // Отмена регистрации всех горячих клавиш
     void unregister_all_hotkeys() {
 #ifdef _WIN32
-        for (const auto& hotkey : registered_hotkeys) {
-            UnregisterHotKey(NULL, hotkey.id);
-            g_hotkey_callbacks.erase(hotkey.id);
-        }
+        g_hotkey_callbacks.clear();
         registered_hotkeys.clear();
 #endif
     }
@@ -180,8 +245,21 @@ public:
     // Активация прослушивания горячих клавиш
     bool start_listening() {
 #ifdef _WIN32
-        active = true;
-        // Создание сообщений для горячих клавиш будет обрабатываться в основном цикле Qt
+        if (!active) {
+            // Устанавливаем хук на клавиатуру
+            g_keyboard_hook = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelKeyboardProc, GetModuleHandle(NULL), 0);
+            if (g_keyboard_hook) {
+                active = true;
+                // Инициализируем активные модификаторы
+                g_active_modifiers.clear();
+                g_active_modifiers[MOD_CONTROL] = 0;
+                g_active_modifiers[MOD_ALT] = 0;
+                g_active_modifiers[MOD_SHIFT] = 0;
+                g_active_modifiers[MOD_WIN] = 0;
+                return true;
+            }
+            return false;
+        }
         return true;
 #else
         return false;
@@ -191,7 +269,13 @@ public:
     // Деактивация прослушивания горячих клавиш
     bool stop_listening() {
 #ifdef _WIN32
-        active = false;
+        if (active && g_keyboard_hook) {
+            UnhookWindowsHookEx(g_keyboard_hook);
+            g_keyboard_hook = NULL;
+            active = false;
+            g_active_modifiers.clear();
+            return true;
+        }
         return true;
 #else
         return false;
@@ -255,7 +339,7 @@ public:
     }
 };
 
-// Модуль Python для горячих клавиш
+// Экспорт модуля и класса в Python
 PYBIND11_MODULE(hotkey_manager, m) {
     m.doc() = "Hotkey manager module for global keyboard shortcuts";
     

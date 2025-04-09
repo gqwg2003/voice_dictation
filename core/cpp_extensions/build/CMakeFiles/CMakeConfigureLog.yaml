@@ -24,7 +24,7 @@ events:
       The output was:
       0
       ╨Т╨╡╤А╤Б╨╕╤П MSBuild 17.13.19+0d9f5a35a ╨┤╨╗╤П .NET Framework
-      ╨б╨▒╨╛╤А╨║╨░ ╨╜╨░╤З╨░╤В╨░ 09.04.2025 10:55:29.
+      ╨б╨▒╨╛╤А╨║╨░ ╨╜╨░╤З╨░╤В╨░ 09.04.2025 12:55:32.
       
       ╨Я╤А╨╛╨╡╨║╤В "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\3.31.6\\CompilerIdC\\CompilerIdC.vcxproj" ╨▓ ╤Г╨╖╨╗╨╡ 1 (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
       PrepareForBuild:
@@ -53,7 +53,7 @@ events:
           ╨Я╤А╨╡╨┤╤Г╨┐╤А╨╡╨╢╨┤╨╡╨╜╨╕╨╣: 0
           ╨Ю╤И╨╕╨▒╨╛╨║: 0
       
-      ╨Я╤А╨╛╤И╨╗╨╛ ╨▓╤А╨╡╨╝╨╡╨╜╨╕ 00:00:00.37
+      ╨Я╤А╨╛╤И╨╗╨╛ ╨▓╤А╨╡╨╝╨╡╨╜╨╕ 00:00:00.54
       
       
       Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CompilerIdC.exe"
@@ -79,7 +79,7 @@ events:
       The output was:
       0
       ╨Т╨╡╤А╤Б╨╕╤П MSBuild 17.13.19+0d9f5a35a ╨┤╨╗╤П .NET Framework
-      ╨б╨▒╨╛╤А╨║╨░ ╨╜╨░╤З╨░╤В╨░ 09.04.2025 10:55:30.
+      ╨б╨▒╨╛╤А╨║╨░ ╨╜╨░╤З╨░╤В╨░ 09.04.2025 12:55:33.
       
       ╨Я╤А╨╛╨╡╨║╤В "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\3.31.6\\CompilerIdCXX\\CompilerIdCXX.vcxproj" ╨▓ ╤Г╨╖╨╗╨╡ 1 (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
       PrepareForBuild:
@@ -108,7 +108,7 @@ events:
           ╨Я╤А╨╡╨┤╤Г╨┐╤А╨╡╨╢╨┤╨╡╨╜╨╕╨╣: 0
           ╨Ю╤И╨╕╨▒╨╛╨║: 0
       
-      ╨Я╤А╨╛╤И╨╗╨╛ ╨▓╤А╨╡╨╝╨╡╨╜╨╕ 00:00:00.37
+      ╨Я╤А╨╛╤И╨╗╨╛ ╨▓╤А╨╡╨╝╨╡╨╜╨╕ 00:00:00.38
       
       
       Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.exe"
@@ -127,8 +127,8 @@ events:
     checks:
       - "Detecting C compiler ABI info"
     directories:
-      source: "D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-8olvfb"
-      binary: "D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-8olvfb"
+      source: "D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-kiq5cp"
+      binary: "D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-kiq5cp"
     cmakeVariables:
       CMAKE_C_FLAGS: "/DWIN32 /D_WINDOWS /W3"
       CMAKE_C_FLAGS_DEBUG: "/MDd /Zi /Ob0 /Od /RTC1"
@@ -137,34 +137,34 @@ events:
       variable: "CMAKE_C_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: 'D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-8olvfb'
+        Change Dir: 'D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-kiq5cp'
         
-        Run Build Command(s): "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_5a93c.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
+        Run Build Command(s): "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_71efe.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
         ╨Т╨╡╤А╤Б╨╕╤П MSBuild 17.13.19+0d9f5a35a ╨┤╨╗╤П .NET Framework
-        ╨б╨▒╨╛╤А╨║╨░ ╨╜╨░╤З╨░╤В╨░ 09.04.2025 10:55:30.
+        ╨б╨▒╨╛╤А╨║╨░ ╨╜╨░╤З╨░╤В╨░ 09.04.2025 12:55:34.
         
-        ╨Я╤А╨╛╨╡╨║╤В "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-8olvfb\\cmTC_5a93c.vcxproj" ╨▓ ╤Г╨╖╨╗╨╡ 1 (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
+        ╨Я╤А╨╛╨╡╨║╤В "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-kiq5cp\\cmTC_71efe.vcxproj" ╨▓ ╤Г╨╖╨╗╨╡ 1 (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
         PrepareForBuild:
-          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "cmTC_5a93c.dir\\Debug\\".
+          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "cmTC_71efe.dir\\Debug\\".
           ╨б╤В╤А╤Г╨║╤В╤Г╤А╨╕╤А╨╛╨▓╨░╨╜╨╜╤Л╨╣ ╨▓╤Л╨▓╨╛╨┤ ╨▓╨║╨╗╤О╤З╨╡╨╜. ╨д╨╛╤А╨╝╨░╤В╨╕╤А╨╛╨▓╨░╨╜╨╕╨╡ ╨┤╨╕╨░╨│╨╜╨╛╤Б╤В╨╕╨║╨╕ ╨║╨╛╨╝╨┐╨╕╨╗╤П╤В╨╛╤А╨░ ╨▒╤Г╨┤╨╡╤В ╨╛╤В╤А╨░╨╢╨░╤В╤М ╨╕╨╡╤А╨░╤А╤Е╨╕╤О ╨╛╤И╨╕╨▒╨╛╨║. ╨Я╨╛╨┤╤А╨╛╨▒╨╜╨╡╨╡ ╤Б╨╝. https://aka.ms/cpp/structured-output.
-          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-8olvfb\\Debug\\".
-          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "cmTC_5a93c.dir\\Debug\\cmTC_5a93c.tlog\\".
+          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-kiq5cp\\Debug\\".
+          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "cmTC_71efe.dir\\Debug\\cmTC_71efe.tlog\\".
         InitializeBuildStatus:
-          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ "cmTC_5a93c.dir\\Debug\\cmTC_5a93c.tlog\\unsuccessfulbuild", ╤В╨░╨║ ╨║╨░╨║ ╨▒╤Л╨╗╨╛ ╨╖╨░╨┤╨░╨╜╨╛ "AlwaysCreate".
-          ╨Ю╨▒╤А╨░╤Й╨╡╨╜╨╕╨╡ ╨║ "cmTC_5a93c.dir\\Debug\\cmTC_5a93c.tlog\\unsuccessfulbuild".
+          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ "cmTC_71efe.dir\\Debug\\cmTC_71efe.tlog\\unsuccessfulbuild", ╤В╨░╨║ ╨║╨░╨║ ╨▒╤Л╨╗╨╛ ╨╖╨░╨┤╨░╨╜╨╛ "AlwaysCreate".
+          ╨Ю╨▒╤А╨░╤Й╨╡╨╜╨╕╨╡ ╨║ "cmTC_71efe.dir\\Debug\\cmTC_71efe.tlog\\unsuccessfulbuild".
         ClCompile:
-          C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_5a93c.dir\\Debug\\\\" /Fd"cmTC_5a93c.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TC /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-3.31\\Modules\\CMakeCCompilerABI.c"
+          C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_71efe.dir\\Debug\\\\" /Fd"cmTC_71efe.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TC /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-3.31\\Modules\\CMakeCCompilerABI.c"
           ╨Ю╨┐╤В╨╕╨╝╨╕╨╖╨╕╤А╤Г╤О╤Й╨╕╨╣ ╨║╨╛╨╝╨┐╨╕╨╗╤П╤В╨╛╤А Microsoft (R) C/C++ ╨▓╨╡╤А╤Б╨╕╨╕ 19.43.34809 ╨┤╨╗╤П x64
           (C) ╨Ъ╨╛╤А╨┐╨╛╤А╨░╤Ж╨╕╤П ╨Ь╨░╨╣╨║╤А╨╛╤Б╨╛╤Д╤В (Microsoft Corporation).  ╨Т╤Б╨╡ ╨┐╤А╨░╨▓╨░ ╨╖╨░╤Й╨╕╤Й╨╡╨╜╤Л.
-          cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_5a93c.dir\\Debug\\\\" /Fd"cmTC_5a93c.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TC /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-3.31\\Modules\\CMakeCCompilerABI.c"
+          cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_71efe.dir\\Debug\\\\" /Fd"cmTC_71efe.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TC /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-3.31\\Modules\\CMakeCCompilerABI.c"
           CMakeCCompilerABI.c
         Link:
-          C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-8olvfb\\Debug\\cmTC_5a93c.exe" /INCREMENTAL /ILK:"cmTC_5a93c.dir\\Debug\\cmTC_5a93c.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-8olvfb/Debug/cmTC_5a93c.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-8olvfb/Debug/cmTC_5a93c.lib" /MACHINE:X64  /machine:x64 cmTC_5a93c.dir\\Debug\\CMakeCCompilerABI.obj
-          cmTC_5a93c.vcxproj -> D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-8olvfb\\Debug\\cmTC_5a93c.exe
+          C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-kiq5cp\\Debug\\cmTC_71efe.exe" /INCREMENTAL /ILK:"cmTC_71efe.dir\\Debug\\cmTC_71efe.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-kiq5cp/Debug/cmTC_71efe.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-kiq5cp/Debug/cmTC_71efe.lib" /MACHINE:X64  /machine:x64 cmTC_71efe.dir\\Debug\\CMakeCCompilerABI.obj
+          cmTC_71efe.vcxproj -> D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-kiq5cp\\Debug\\cmTC_71efe.exe
         FinalizeBuildStatus:
-          ╨д╨░╨╣╨╗ "cmTC_5a93c.dir\\Debug\\cmTC_5a93c.tlog\\unsuccessfulbuild" ╤Г╨┤╨░╨╗╤П╨╡╤В╤Б╤П.
-          ╨Ю╨▒╤А╨░╤Й╨╡╨╜╨╕╨╡ ╨║ "cmTC_5a93c.dir\\Debug\\cmTC_5a93c.tlog\\cmTC_5a93c.lastbuildstate".
-        ╨б╨▒╨╛╤А╨║╨░ ╨┐╤А╨╛╨╡╨║╤В╨░ "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-8olvfb\\cmTC_5a93c.vcxproj" ╨╖╨░╨▓╨╡╤А╤И╨╡╨╜╨░ (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
+          ╨д╨░╨╣╨╗ "cmTC_71efe.dir\\Debug\\cmTC_71efe.tlog\\unsuccessfulbuild" ╤Г╨┤╨░╨╗╤П╨╡╤В╤Б╤П.
+          ╨Ю╨▒╤А╨░╤Й╨╡╨╜╨╕╨╡ ╨║ "cmTC_71efe.dir\\Debug\\cmTC_71efe.tlog\\cmTC_71efe.lastbuildstate".
+        ╨б╨▒╨╛╤А╨║╨░ ╨┐╤А╨╛╨╡╨║╤В╨░ "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-kiq5cp\\cmTC_71efe.vcxproj" ╨╖╨░╨▓╨╡╤А╤И╨╡╨╜╨░ (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
         
         ╨б╨▒╨╛╤А╨║╨░ ╤Г╤Б╨┐╨╡╤И╨╜╨╛ ╨╖╨░╨▓╨╡╤А╤И╨╡╨╜╨░.
             ╨Я╤А╨╡╨┤╤Г╨┐╤А╨╡╨╢╨┤╨╡╨╜╨╕╨╣: 0
@@ -210,8 +210,8 @@ events:
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
-      source: "D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-twc4q9"
-      binary: "D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-twc4q9"
+      source: "D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-mle18m"
+      binary: "D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-mle18m"
     cmakeVariables:
       CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
       CMAKE_CXX_FLAGS_DEBUG: "/MDd /Zi /Ob0 /Od /RTC1"
@@ -221,40 +221,40 @@ events:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: 'D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-twc4q9'
+        Change Dir: 'D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-mle18m'
         
-        Run Build Command(s): "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_fde48.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
+        Run Build Command(s): "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_fcfde.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
         ╨Т╨╡╤А╤Б╨╕╤П MSBuild 17.13.19+0d9f5a35a ╨┤╨╗╤П .NET Framework
-        ╨б╨▒╨╛╤А╨║╨░ ╨╜╨░╤З╨░╤В╨░ 09.04.2025 10:55:31.
+        ╨б╨▒╨╛╤А╨║╨░ ╨╜╨░╤З╨░╤В╨░ 09.04.2025 12:55:34.
         
-        ╨Я╤А╨╛╨╡╨║╤В "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-twc4q9\\cmTC_fde48.vcxproj" ╨▓ ╤Г╨╖╨╗╨╡ 1 (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
+        ╨Я╤А╨╛╨╡╨║╤В "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-mle18m\\cmTC_fcfde.vcxproj" ╨▓ ╤Г╨╖╨╗╨╡ 1 (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
         PrepareForBuild:
-          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "cmTC_fde48.dir\\Debug\\".
+          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "cmTC_fcfde.dir\\Debug\\".
           ╨б╤В╤А╤Г╨║╤В╤Г╤А╨╕╤А╨╛╨▓╨░╨╜╨╜╤Л╨╣ ╨▓╤Л╨▓╨╛╨┤ ╨▓╨║╨╗╤О╤З╨╡╨╜. ╨д╨╛╤А╨╝╨░╤В╨╕╤А╨╛╨▓╨░╨╜╨╕╨╡ ╨┤╨╕╨░╨│╨╜╨╛╤Б╤В╨╕╨║╨╕ ╨║╨╛╨╝╨┐╨╕╨╗╤П╤В╨╛╤А╨░ ╨▒╤Г╨┤╨╡╤В ╨╛╤В╤А╨░╨╢╨░╤В╤М ╨╕╨╡╤А╨░╤А╤Е╨╕╤О ╨╛╤И╨╕╨▒╨╛╨║. ╨Я╨╛╨┤╤А╨╛╨▒╨╜╨╡╨╡ ╤Б╨╝. https://aka.ms/cpp/structured-output.
-          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-twc4q9\\Debug\\".
-          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "cmTC_fde48.dir\\Debug\\cmTC_fde48.tlog\\".
+          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-mle18m\\Debug\\".
+          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "cmTC_fcfde.dir\\Debug\\cmTC_fcfde.tlog\\".
         InitializeBuildStatus:
-          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ "cmTC_fde48.dir\\Debug\\cmTC_fde48.tlog\\unsuccessfulbuild", ╤В╨░╨║ ╨║╨░╨║ ╨▒╤Л╨╗╨╛ ╨╖╨░╨┤╨░╨╜╨╛ "AlwaysCreate".
-          ╨Ю╨▒╤А╨░╤Й╨╡╨╜╨╕╨╡ ╨║ "cmTC_fde48.dir\\Debug\\cmTC_fde48.tlog\\unsuccessfulbuild".
+          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ "cmTC_fcfde.dir\\Debug\\cmTC_fcfde.tlog\\unsuccessfulbuild", ╤В╨░╨║ ╨║╨░╨║ ╨▒╤Л╨╗╨╛ ╨╖╨░╨┤╨░╨╜╨╛ "AlwaysCreate".
+          ╨Ю╨▒╤А╨░╤Й╨╡╨╜╨╕╨╡ ╨║ "cmTC_fcfde.dir\\Debug\\cmTC_fcfde.tlog\\unsuccessfulbuild".
         ClCompile:
-          C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_fde48.dir\\Debug\\\\" /Fd"cmTC_fde48.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-3.31\\Modules\\CMakeCXXCompilerABI.cpp"
+          C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_fcfde.dir\\Debug\\\\" /Fd"cmTC_fcfde.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-3.31\\Modules\\CMakeCXXCompilerABI.cpp"
           ╨Ю╨┐╤В╨╕╨╝╨╕╨╖╨╕╤А╤Г╤О╤Й╨╕╨╣ ╨║╨╛╨╝╨┐╨╕╨╗╤П╤В╨╛╤А Microsoft (R) C/C++ ╨▓╨╡╤А╤Б╨╕╨╕ 19.43.34809 ╨┤╨╗╤П x64
           (C) ╨Ъ╨╛╤А╨┐╨╛╤А╨░╤Ж╨╕╤П ╨Ь╨░╨╣╨║╤А╨╛╤Б╨╛╤Д╤В (Microsoft Corporation).  ╨Т╤Б╨╡ ╨┐╤А╨░╨▓╨░ ╨╖╨░╤Й╨╕╤Й╨╡╨╜╤Л.
-          cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_fde48.dir\\Debug\\\\" /Fd"cmTC_fde48.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-3.31\\Modules\\CMakeCXXCompilerABI.cpp"
+          cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_fcfde.dir\\Debug\\\\" /Fd"cmTC_fcfde.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-3.31\\Modules\\CMakeCXXCompilerABI.cpp"
           CMakeCXXCompilerABI.cpp
         Link:
-          C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-twc4q9\\Debug\\cmTC_fde48.exe" /INCREMENTAL /ILK:"cmTC_fde48.dir\\Debug\\cmTC_fde48.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-twc4q9/Debug/cmTC_fde48.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-twc4q9/Debug/cmTC_fde48.lib" /MACHINE:X64  /machine:x64 cmTC_fde48.dir\\Debug\\CMakeCXXCompilerABI.obj
-          cmTC_fde48.vcxproj -> D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-twc4q9\\Debug\\cmTC_fde48.exe
+          C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-mle18m\\Debug\\cmTC_fcfde.exe" /INCREMENTAL /ILK:"cmTC_fcfde.dir\\Debug\\cmTC_fcfde.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-mle18m/Debug/cmTC_fcfde.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-mle18m/Debug/cmTC_fcfde.lib" /MACHINE:X64  /machine:x64 cmTC_fcfde.dir\\Debug\\CMakeCXXCompilerABI.obj
+          cmTC_fcfde.vcxproj -> D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-mle18m\\Debug\\cmTC_fcfde.exe
         FinalizeBuildStatus:
-          ╨д╨░╨╣╨╗ "cmTC_fde48.dir\\Debug\\cmTC_fde48.tlog\\unsuccessfulbuild" ╤Г╨┤╨░╨╗╤П╨╡╤В╤Б╤П.
-          ╨Ю╨▒╤А╨░╤Й╨╡╨╜╨╕╨╡ ╨║ "cmTC_fde48.dir\\Debug\\cmTC_fde48.tlog\\cmTC_fde48.lastbuildstate".
-        ╨б╨▒╨╛╤А╨║╨░ ╨┐╤А╨╛╨╡╨║╤В╨░ "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-twc4q9\\cmTC_fde48.vcxproj" ╨╖╨░╨▓╨╡╤А╤И╨╡╨╜╨░ (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
+          ╨д╨░╨╣╨╗ "cmTC_fcfde.dir\\Debug\\cmTC_fcfde.tlog\\unsuccessfulbuild" ╤Г╨┤╨░╨╗╤П╨╡╤В╤Б╤П.
+          ╨Ю╨▒╤А╨░╤Й╨╡╨╜╨╕╨╡ ╨║ "cmTC_fcfde.dir\\Debug\\cmTC_fcfde.tlog\\cmTC_fcfde.lastbuildstate".
+        ╨б╨▒╨╛╤А╨║╨░ ╨┐╤А╨╛╨╡╨║╤В╨░ "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-mle18m\\cmTC_fcfde.vcxproj" ╨╖╨░╨▓╨╡╤А╤И╨╡╨╜╨░ (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
         
         ╨б╨▒╨╛╤А╨║╨░ ╤Г╤Б╨┐╨╡╤И╨╜╨╛ ╨╖╨░╨▓╨╡╤А╤И╨╡╨╜╨░.
             ╨Я╤А╨╡╨┤╤Г╨┐╤А╨╡╨╢╨┤╨╡╨╜╨╕╨╣: 0
             ╨Ю╤И╨╕╨▒╨╛╨║: 0
         
-        ╨Я╤А╨╛╤И╨╗╨╛ ╨▓╤А╨╡╨╝╨╡╨╜╨╕ 00:00:00.36
+        ╨Я╤А╨╛╤И╨╗╨╛ ╨▓╤А╨╡╨╝╨╡╨╜╨╕ 00:00:00.37
         
       exitCode: 0
   -
@@ -299,8 +299,8 @@ events:
     checks:
       - "Performing Test HAS_MSVC_GL_LTCG"
     directories:
-      source: "D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-6fe3jo"
-      binary: "D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-6fe3jo"
+      source: "D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-uogt3t"
+      binary: "D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-uogt3t"
     cmakeVariables:
       CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
       CMAKE_CXX_FLAGS_DEBUG: "/MDd /Zi /Ob0 /Od /RTC1"
@@ -309,48 +309,48 @@ events:
       variable: "HAS_MSVC_GL_LTCG"
       cached: true
       stdout: |
-        Change Dir: 'D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-6fe3jo'
+        Change Dir: 'D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-uogt3t'
         
-        Run Build Command(s): "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_db887.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
+        Run Build Command(s): "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_4161f.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
         ╨Т╨╡╤А╤Б╨╕╤П MSBuild 17.13.19+0d9f5a35a ╨┤╨╗╤П .NET Framework
-        ╨б╨▒╨╛╤А╨║╨░ ╨╜╨░╤З╨░╤В╨░ 09.04.2025 10:55:33.
+        ╨б╨▒╨╛╤А╨║╨░ ╨╜╨░╤З╨░╤В╨░ 09.04.2025 12:55:36.
         
-        ╨Я╤А╨╛╨╡╨║╤В "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-6fe3jo\\cmTC_db887.vcxproj" ╨▓ ╤Г╨╖╨╗╨╡ 1 (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
+        ╨Я╤А╨╛╨╡╨║╤В "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-uogt3t\\cmTC_4161f.vcxproj" ╨▓ ╤Г╨╖╨╗╨╡ 1 (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
         PrepareForBuild:
-          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "cmTC_db887.dir\\Debug\\".
+          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "cmTC_4161f.dir\\Debug\\".
           ╨б╤В╤А╤Г╨║╤В╤Г╤А╨╕╤А╨╛╨▓╨░╨╜╨╜╤Л╨╣ ╨▓╤Л╨▓╨╛╨┤ ╨▓╨║╨╗╤О╤З╨╡╨╜. ╨д╨╛╤А╨╝╨░╤В╨╕╤А╨╛╨▓╨░╨╜╨╕╨╡ ╨┤╨╕╨░╨│╨╜╨╛╤Б╤В╨╕╨║╨╕ ╨║╨╛╨╝╨┐╨╕╨╗╤П╤В╨╛╤А╨░ ╨▒╤Г╨┤╨╡╤В ╨╛╤В╤А╨░╨╢╨░╤В╤М ╨╕╨╡╤А╨░╤А╤Е╨╕╤О ╨╛╤И╨╕╨▒╨╛╨║. ╨Я╨╛╨┤╤А╨╛╨▒╨╜╨╡╨╡ ╤Б╨╝. https://aka.ms/cpp/structured-output.
-          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-6fe3jo\\Debug\\".
-          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "cmTC_db887.dir\\Debug\\cmTC_db887.tlog\\".
+          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-uogt3t\\Debug\\".
+          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "cmTC_4161f.dir\\Debug\\cmTC_4161f.tlog\\".
         InitializeBuildStatus:
-          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ "cmTC_db887.dir\\Debug\\cmTC_db887.tlog\\unsuccessfulbuild", ╤В╨░╨║ ╨║╨░╨║ ╨▒╤Л╨╗╨╛ ╨╖╨░╨┤╨░╨╜╨╛ "AlwaysCreate".
-          ╨Ю╨▒╤А╨░╤Й╨╡╨╜╨╕╨╡ ╨║ "cmTC_db887.dir\\Debug\\cmTC_db887.tlog\\unsuccessfulbuild".
+          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ "cmTC_4161f.dir\\Debug\\cmTC_4161f.tlog\\unsuccessfulbuild", ╤В╨░╨║ ╨║╨░╨║ ╨▒╤Л╨╗╨╛ ╨╖╨░╨┤╨░╨╜╨╛ "AlwaysCreate".
+          ╨Ю╨▒╤А╨░╤Й╨╡╨╜╨╕╨╡ ╨║ "cmTC_4161f.dir\\Debug\\cmTC_4161f.tlog\\unsuccessfulbuild".
         ClCompile:
-          C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /GL /D _MBCS /D WIN32 /D _WINDOWS /D HAS_MSVC_GL_LTCG /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++17 /Fo"cmTC_db887.dir\\Debug\\\\" /Fd"cmTC_db887.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-6fe3jo\\src.cxx"
+          C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\CL.exe /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /GL /D _MBCS /D WIN32 /D _WINDOWS /D HAS_MSVC_GL_LTCG /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++17 /Fo"cmTC_4161f.dir\\Debug\\\\" /Fd"cmTC_4161f.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-uogt3t\\src.cxx"
           ╨Ю╨┐╤В╨╕╨╝╨╕╨╖╨╕╤А╤Г╤О╤Й╨╕╨╣ ╨║╨╛╨╝╨┐╨╕╨╗╤П╤В╨╛╤А Microsoft (R) C/C++ ╨▓╨╡╤А╤Б╨╕╨╕ 19.43.34809 ╨┤╨╗╤П x64
           (C) ╨Ъ╨╛╤А╨┐╨╛╤А╨░╤Ж╨╕╤П ╨Ь╨░╨╣╨║╤А╨╛╤Б╨╛╤Д╤В (Microsoft Corporation).  ╨Т╤Б╨╡ ╨┐╤А╨░╨▓╨░ ╨╖╨░╤Й╨╕╤Й╨╡╨╜╤Л.
-          cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /GL /D _MBCS /D WIN32 /D _WINDOWS /D HAS_MSVC_GL_LTCG /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++17 /Fo"cmTC_db887.dir\\Debug\\\\" /Fd"cmTC_db887.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-6fe3jo\\src.cxx"
+          cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /GL /D _MBCS /D WIN32 /D _WINDOWS /D HAS_MSVC_GL_LTCG /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++17 /Fo"cmTC_4161f.dir\\Debug\\\\" /Fd"cmTC_4161f.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-uogt3t\\src.cxx"
           src.cxx
         Link:
-          C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-6fe3jo\\Debug\\cmTC_db887.exe" /INCREMENTAL /ILK:"cmTC_db887.dir\\Debug\\cmTC_db887.ilk" /NOLOGO "-LTCG" kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-6fe3jo/Debug/cmTC_db887.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-6fe3jo/Debug/cmTC_db887.lib" /MACHINE:X64  /machine:x64 cmTC_db887.dir\\Debug\\src.obj
-        LINK : warning LNK4075: ╨╜╨╡ ╤Г╤З╨╕╤В╤Л╨▓╨░╨╡╤В╤Б╤П "/INCREMENTAL" ╨╕╨╖-╨╖╨░ ╤Б╨┐╨╡╤Ж╨╕╤Д╨╕╨║╨░╤Ж╨╕╨╕ "/LTCG" [D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-6fe3jo\\cmTC_db887.vcxproj]
+          C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-uogt3t\\Debug\\cmTC_4161f.exe" /INCREMENTAL /ILK:"cmTC_4161f.dir\\Debug\\cmTC_4161f.ilk" /NOLOGO "-LTCG" kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-uogt3t/Debug/cmTC_4161f.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/voice multilingual/core/cpp_extensions/build/CMakeFiles/CMakeScratch/TryCompile-uogt3t/Debug/cmTC_4161f.lib" /MACHINE:X64  /machine:x64 cmTC_4161f.dir\\Debug\\src.obj
+        LINK : warning LNK4075: ╨╜╨╡ ╤Г╤З╨╕╤В╤Л╨▓╨░╨╡╤В╤Б╤П "/INCREMENTAL" ╨╕╨╖-╨╖╨░ ╤Б╨┐╨╡╤Ж╨╕╤Д╨╕╨║╨░╤Ж╨╕╨╕ "/LTCG" [D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-uogt3t\\cmTC_4161f.vcxproj]
           ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨╛╨┤╨░
           ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨╛╨┤╨░ ╨╖╨░╨▓╨╡╤А╤И╨╡╨╜╨╛
-          cmTC_db887.vcxproj -> D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-6fe3jo\\Debug\\cmTC_db887.exe
+          cmTC_4161f.vcxproj -> D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-uogt3t\\Debug\\cmTC_4161f.exe
         FinalizeBuildStatus:
-          ╨д╨░╨╣╨╗ "cmTC_db887.dir\\Debug\\cmTC_db887.tlog\\unsuccessfulbuild" ╤Г╨┤╨░╨╗╤П╨╡╤В╤Б╤П.
-          ╨Ю╨▒╤А╨░╤Й╨╡╨╜╨╕╨╡ ╨║ "cmTC_db887.dir\\Debug\\cmTC_db887.tlog\\cmTC_db887.lastbuildstate".
-        ╨б╨▒╨╛╤А╨║╨░ ╨┐╤А╨╛╨╡╨║╤В╨░ "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-6fe3jo\\cmTC_db887.vcxproj" ╨╖╨░╨▓╨╡╤А╤И╨╡╨╜╨░ (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
+          ╨д╨░╨╣╨╗ "cmTC_4161f.dir\\Debug\\cmTC_4161f.tlog\\unsuccessfulbuild" ╤Г╨┤╨░╨╗╤П╨╡╤В╤Б╤П.
+          ╨Ю╨▒╤А╨░╤Й╨╡╨╜╨╕╨╡ ╨║ "cmTC_4161f.dir\\Debug\\cmTC_4161f.tlog\\cmTC_4161f.lastbuildstate".
+        ╨б╨▒╨╛╤А╨║╨░ ╨┐╤А╨╛╨╡╨║╤В╨░ "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-uogt3t\\cmTC_4161f.vcxproj" ╨╖╨░╨▓╨╡╤А╤И╨╡╨╜╨░ (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
         
         ╨б╨▒╨╛╤А╨║╨░ ╤Г╤Б╨┐╨╡╤И╨╜╨╛ ╨╖╨░╨▓╨╡╤А╤И╨╡╨╜╨░.
         
-        "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-6fe3jo\\cmTC_db887.vcxproj" (╤Ж╨╡╨╗╨╡╨▓╨╛╨╣ ╨╛╨▒╤К╨╡╨║╤В ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О) (1) ->
+        "D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-uogt3t\\cmTC_4161f.vcxproj" (╤Ж╨╡╨╗╨╡╨▓╨╛╨╣ ╨╛╨▒╤К╨╡╨║╤В ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О) (1) ->
         (╨ж╨╡╨╗╨╡╨▓╨╛╨╣ ╨╛╨▒╤К╨╡╨║╤В Link) -> 
-          LINK : warning LNK4075: ╨╜╨╡ ╤Г╤З╨╕╤В╤Л╨▓╨░╨╡╤В╤Б╤П "/INCREMENTAL" ╨╕╨╖-╨╖╨░ ╤Б╨┐╨╡╤Ж╨╕╤Д╨╕╨║╨░╤Ж╨╕╨╕ "/LTCG" [D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-6fe3jo\\cmTC_db887.vcxproj]
+          LINK : warning LNK4075: ╨╜╨╡ ╤Г╤З╨╕╤В╤Л╨▓╨░╨╡╤В╤Б╤П "/INCREMENTAL" ╨╕╨╖-╨╖╨░ ╤Б╨┐╨╡╤Ж╨╕╤Д╨╕╨║╨░╤Ж╨╕╨╕ "/LTCG" [D:\\voice multilingual\\core\\cpp_extensions\\build\\CMakeFiles\\CMakeScratch\\TryCompile-uogt3t\\cmTC_4161f.vcxproj]
         
             ╨Я╤А╨╡╨┤╤Г╨┐╤А╨╡╨╢╨┤╨╡╨╜╨╕╨╣: 1
             ╨Ю╤И╨╕╨▒╨╛╨║: 0
         
-        ╨Я╤А╨╛╤И╨╗╨╛ ╨▓╤А╨╡╨╝╨╡╨╜╨╕ 00:00:00.36
+        ╨Я╤А╨╛╤И╨╗╨╛ ╨▓╤А╨╡╨╝╨╡╨╜╨╕ 00:00:00.38
         
       exitCode: 0
 ...
