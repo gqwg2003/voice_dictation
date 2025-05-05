@@ -656,6 +656,45 @@ void SettingsDialog::loadSettings()
     // Public API settings
     m_usePublicApiCheckBox->setChecked(settings.value("speech/use_public_api", false).toBool());
     m_usePublicApiCheckBox->setEnabled(recognitionService != "whisper");
+    
+    // Прокси настройки
+    bool useProxy = settings.value("network/use_proxy", false).toBool();
+    m_useProxyCheckBox->setChecked(useProxy);
+    
+    int proxyType = settings.value("network/proxy_type", QNetworkProxy::HttpProxy).toInt();
+    int proxyTypeIndex = m_proxyTypeComboBox->findData(proxyType);
+    if (proxyTypeIndex >= 0) {
+        m_proxyTypeComboBox->setCurrentIndex(proxyTypeIndex);
+    }
+    
+    m_proxyHostEdit->setText(settings.value("network/proxy_host", "").toString());
+    m_proxyPortSpinBox->setValue(settings.value("network/proxy_port", 8080).toInt());
+    m_proxyUserEdit->setText(settings.value("network/proxy_user", "").toString());
+    m_proxyPasswordEdit->setText(settings.value("network/proxy_password", "").toString());
+    
+    // Включаем/отключаем элементы прокси в зависимости от настройки
+    m_proxyTypeComboBox->setEnabled(useProxy);
+    m_proxyHostEdit->setEnabled(useProxy);
+    m_proxyPortSpinBox->setEnabled(useProxy);
+    m_proxyUserEdit->setEnabled(useProxy);
+    m_proxyPasswordEdit->setEnabled(useProxy);
+    
+    // Многопоточная загрузка
+    bool useMultiThreaded = settings.value("download/use_multi_threaded", false).toBool();
+    m_useMultiThreaded = useMultiThreaded;
+    // Находим и устанавливаем чекбокс многопоточной загрузки
+    QCheckBox* useMultiThreadedCheckBox = qobject_cast<QCheckBox*>(m_threadCountSpinBox->parentWidget()->findChild<QCheckBox*>());
+    if (useMultiThreadedCheckBox) {
+        useMultiThreadedCheckBox->setChecked(useMultiThreaded);
+    }
+    
+    m_threadCountSpinBox->setValue(settings.value("download/thread_count", 4).toInt());
+    m_threadCountSpinBox->setEnabled(useMultiThreaded);
+    
+    // Если прокси настроен, применяем настройки
+    if (useProxy) {
+        setupProxy();
+    }
 }
 
 void SettingsDialog::saveSettings()
@@ -710,6 +749,18 @@ void SettingsDialog::saveSettings()
     if (logLevelIndex >= 0) {
         settings.setValue("advanced/log_level", m_logLevelComboBox->itemData(logLevelIndex).toString());
     }
+    
+    // Прокси настройки
+    settings.setValue("network/use_proxy", m_useProxyCheckBox->isChecked());
+    settings.setValue("network/proxy_type", m_proxyTypeComboBox->currentData().toInt());
+    settings.setValue("network/proxy_host", m_proxyHostEdit->text());
+    settings.setValue("network/proxy_port", m_proxyPortSpinBox->value());
+    settings.setValue("network/proxy_user", m_proxyUserEdit->text());
+    settings.setValue("network/proxy_password", m_proxyPasswordEdit->text());
+    
+    // Многопоточная загрузка
+    settings.setValue("download/use_multi_threaded", m_useMultiThreaded);
+    settings.setValue("download/thread_count", m_threadCountSpinBox->value());
 }
 
 void SettingsDialog::applySettings()
@@ -762,6 +813,35 @@ void SettingsDialog::restoreDefaults()
     // Public API settings
     m_usePublicApiCheckBox->setChecked(false);
     m_usePublicApiCheckBox->setEnabled(false);
+    
+    // Прокси настройки
+    m_useProxyCheckBox->setChecked(false);
+    m_proxyTypeComboBox->setCurrentIndex(m_proxyTypeComboBox->findData(QNetworkProxy::HttpProxy));
+    m_proxyHostEdit->setText("");
+    m_proxyPortSpinBox->setValue(8080);
+    m_proxyUserEdit->setText("");
+    m_proxyPasswordEdit->setText("");
+    
+    // Отключаем элементы прокси
+    m_proxyTypeComboBox->setEnabled(false);
+    m_proxyHostEdit->setEnabled(false);
+    m_proxyPortSpinBox->setEnabled(false);
+    m_proxyUserEdit->setEnabled(false);
+    m_proxyPasswordEdit->setEnabled(false);
+    
+    // Многопоточная загрузка
+    m_useMultiThreaded = false;
+    // Находим и сбрасываем чекбокс многопоточной загрузки
+    QCheckBox* useMultiThreadedCheckBox = qobject_cast<QCheckBox*>(m_threadCountSpinBox->parentWidget()->findChild<QCheckBox*>());
+    if (useMultiThreadedCheckBox) {
+        useMultiThreadedCheckBox->setChecked(false);
+    }
+    m_threadCountSpinBox->setValue(4);
+    m_threadCountSpinBox->setEnabled(false);
+    
+    // Сбрасываем прокси на прямое соединение
+    m_networkProxy.setType(QNetworkProxy::NoProxy);
+    m_networkManager->setProxy(m_networkProxy);
 }
 
 void SettingsDialog::onAccept()
