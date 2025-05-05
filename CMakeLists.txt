@@ -179,6 +179,10 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/models DESTINATION ${CMAKE_INSTALL_PREFIX}
 # Copy resources
 file(COPY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
 
+# Force resource rebuild
+# set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/resources/Icon/app.ico")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/resources/resources.qrc")
+
 # Create models directory for whisper models
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/models)
 
@@ -186,6 +190,15 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/models)
 if(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
     target_link_libraries(${PROJECT_NAME} PRIVATE winmm)
+    
+    # Add Windows executable properties
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        VS_DPI_AWARE "PerMonitor"
+        WIN32_EXECUTABLE TRUE
+    )
+    
+    # Configure app icon for Windows
+    configure_file(${CMAKE_SOURCE_DIR}/resources/icons/app.png ${CMAKE_BINARY_DIR}/app.png COPYONLY)
 endif()
 
 if(UNIX AND NOT APPLE)

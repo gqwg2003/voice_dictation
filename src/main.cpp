@@ -21,6 +21,7 @@
 #include <QLocale>
 #include <QStandardPaths>
 #include <QDateTime>
+#include <QIcon>
 
 #include "gui/MainWindow.h"
 #include "utils/Logger.h"
@@ -123,6 +124,10 @@ int main(int argc, char *argv[]) {
         // Create Qt application
         writeDebugToFile("Creating QApplication...");
         QApplication app(argc, argv);
+        
+        // Set application icon for all windows
+        // app.setWindowIcon(QIcon(":/Icon/app.ico"));
+        
         app.setApplicationName("Voice Dictation");
         app.setApplicationVersion(QString::fromStdString(versionData.displayVersion));
         app.setStyle(QStyleFactory::create("Fusion"));  // Using Fusion style for a more professional look

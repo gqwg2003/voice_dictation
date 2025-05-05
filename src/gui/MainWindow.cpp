@@ -24,6 +24,10 @@
 // External global logger
 extern Logger* gLogger;
 
+// Определение статических констант
+const QString MainWindow::ICON_PATH_PREFIX = ":/icons/";
+const QString MainWindow::APP_ICON_PATH = ":/icons/app.png";
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
       m_isRecording(false)
@@ -49,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent)
     // Set window properties
     setMinimumSize(400, 500);
     setWindowTitle(tr("Voice Dictation"));
-    setWindowIcon(QIcon(":/icons/app.png"));
+    setWindowIcon(QIcon(APP_ICON_PATH));
     
     // Center window on screen
     QRect screenGeometry = QApplication::primaryScreen()->geometry();
@@ -121,16 +125,16 @@ void MainWindow::setupUi()
     QHBoxLayout *controlsLayout = new QHBoxLayout();
     
     m_recordButton = new QPushButton(tr("Record"), this);
-    m_recordButton->setIcon(QIcon(":/icons/record.png"));
+    m_recordButton->setIcon(getIcon("record"));
     m_stopButton = new QPushButton(tr("Stop"), this);
-    m_stopButton->setIcon(QIcon(":/icons/stop.png"));
+    m_stopButton->setIcon(getIcon("stop"));
     m_stopButton->setEnabled(false);
     m_clearButton = new QPushButton(tr("Clear"), this);
-    m_clearButton->setIcon(QIcon(":/icons/clear.png"));
+    m_clearButton->setIcon(getIcon("clear"));
     m_copyButton = new QPushButton(tr("Copy"), this);
-    m_copyButton->setIcon(QIcon(":/icons/copy.png"));
+    m_copyButton->setIcon(getIcon("copy"));
     m_settingsButton = new QPushButton(tr("Settings"), this);
-    m_settingsButton->setIcon(QIcon(":/icons/settings.png"));
+    m_settingsButton->setIcon(getIcon("settings"));
     
     controlsLayout->addWidget(m_recordButton);
     controlsLayout->addWidget(m_stopButton);
@@ -184,7 +188,7 @@ void MainWindow::createTrayIcon()
     
     m_trayIcon = new QSystemTrayIcon(this);
     m_trayIcon->setContextMenu(m_trayMenu);
-    m_trayIcon->setIcon(QIcon(":/icons/app.png"));
+    m_trayIcon->setIcon(QIcon(APP_ICON_PATH));
     m_trayIcon->setToolTip(tr("Voice Dictation"));
     m_trayIcon->show();
     
@@ -603,4 +607,21 @@ void MainWindow::applySettings()
     m_statusLabel->setText(tr("Settings applied"));
     
     gLogger->info("Settings applied successfully");
+}
+
+// Метод для получения иконок с правильным расширением
+QIcon MainWindow::getIcon(const QString &iconName) const
+{
+    // Специальная обработка для иконки приложения
+    if (iconName == "app") {
+        return QIcon(ICON_PATH_PREFIX + iconName + ".png");
+    }
+    
+    // Для других иконок - стандартная логика
+    QString extension = ".png";
+    if (iconName == "record" || iconName == "stop") {
+        extension = ".svg";
+    }
+    
+    return QIcon(ICON_PATH_PREFIX + iconName + extension);
 } 

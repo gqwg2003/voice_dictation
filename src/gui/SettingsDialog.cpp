@@ -2,6 +2,7 @@
 #include "../utils/Logger.h"
 #include "../core/HotkeyManager.h"
 #include "../core/SpeechRecognizer.h"
+#include "MainWindow.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -12,6 +13,7 @@
 #include <QMediaDevices>
 #include <QAudioDevice>
 #include <QFileDialog>
+#include <QIcon>
 
 // External global logger
 extern Logger* gLogger;
@@ -19,10 +21,12 @@ extern Logger* gLogger;
 SettingsDialog::SettingsDialog(QWidget* parent)
     : QDialog(parent)
 {
+    setWindowTitle(tr("Settings"));
+    //setWindowIcon(QIcon(":/Icon/app.ico"));
+    
     setupUi();
     loadSettings();
     
-    setWindowTitle(tr("Settings"));
     setMinimumSize(500, 400);
 }
 

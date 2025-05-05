@@ -58,6 +58,7 @@ private:
     void saveSettings();
     void switchLanguage(const QString &language);
     void retranslateUi();
+    QIcon getIcon(const QString &iconName) const;
 
 private:
     // UI elements
@@ -95,4 +96,6 @@ private:
     
     // Constants
     const int VISUALIZATION_UPDATE_INTERVAL = 50; // ms
+    static const QString ICON_PATH_PREFIX;
+    static const QString APP_ICON_PATH;
 }; 
