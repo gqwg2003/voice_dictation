@@ -830,7 +830,9 @@ void SettingsDialog::onDownloadFinished()
             QUrl newUrl = m_currentDownload->url().resolved(redirectUrl);
             m_currentDownload->deleteLater();
             
-            QNetworkRequest request(newUrl);
+            QNetworkRequest request;
+            request.setUrl(newUrl);
+            
             m_currentDownload = m_networkManager->get(request);
             connect(m_currentDownload, &QNetworkReply::downloadProgress, 
                     this, &SettingsDialog::onDownloadProgress);
@@ -991,7 +993,8 @@ void SettingsDialog::downloadResource(const QString& resourceUrl, const QString&
     }
     
     // Создаем запрос
-    QNetworkRequest request(QUrl(resourceUrl));
+    QNetworkRequest request;
+    request.setUrl(QUrl(resourceUrl));
     
     // Начинаем загрузку
     m_currentDownload = m_networkManager->get(request);
