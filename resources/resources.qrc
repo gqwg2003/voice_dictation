@@ -1,0 +1,6 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/">
+        <!-- Иконки будут добавлены позже -->
+    </qresource>
+</RCC> 
