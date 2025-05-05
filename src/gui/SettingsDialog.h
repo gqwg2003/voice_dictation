@@ -11,6 +11,11 @@
 #include <QKeySequenceEdit>
 #include <QMap>
 #include <QLineEdit>
+#include <QTreeWidget>
+#include <QProgressBar>
+#include <QListWidget>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 
 class SettingsDialog : public QDialog {
     Q_OBJECT
@@ -28,6 +33,11 @@ private slots:
     void onRestoreDefaults();
     void handleRecognitionServiceChanged(int index);
     void onUsePublicApiToggled(bool checked);
+    void onLanguageFilterChanged(int index);
+    void onResourceSearchTextChanged(const QString& text);
+    void onDownloadButtonClicked();
+    void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+    void onDownloadFinished();
 
 private:
     // UI setup
@@ -37,6 +47,7 @@ private:
     void createAudioTab();
     void createLanguageTab();
     void createAdvancedTab();
+    void createResourcesTab();
     
     // Settings
     void loadSettings();
@@ -47,6 +58,11 @@ private:
     // Hotkey handling
     void updateHotkeyLabels();
     void onHotkeyChanged();
+    
+    // Resource management
+    void populateResourcesList(const QString& languageFilter = QString(), const QString& searchText = QString());
+    void downloadResource(const QString& resourceId, const QString& destPath);
+    bool isResourceInstalled(const QString& resourceId);
 
 private:
     QTabWidget* m_tabWidget;
@@ -84,6 +100,18 @@ private:
     QLineEdit* m_customModelPathEdit;
     QCheckBox* m_enableLoggingCheckBox;
     QComboBox* m_logLevelComboBox;
+    
+    // Resources tab
+    QComboBox* m_resourceLanguageComboBox;
+    QLineEdit* m_resourceSearchEdit;
+    QTreeWidget* m_resourcesTreeWidget;
+    QPushButton* m_downloadButton;
+    QProgressBar* m_downloadProgressBar;
+    QLabel* m_downloadStatusLabel;
+    
+    // Network
+    QNetworkAccessManager* m_networkManager;
+    QNetworkReply* m_currentDownload;
     
     // Dialog buttons
     QPushButton* m_okButton;

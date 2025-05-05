@@ -14,12 +14,22 @@
 #include <QAudioDevice>
 #include <QFileDialog>
 #include <QIcon>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QTreeWidgetItem>
+#include <QDir>
+#include <QFileInfo>
+#include <QCoreApplication>
+#include <QFile>
 
 // External global logger
 extern Logger* gLogger;
 
 SettingsDialog::SettingsDialog(QWidget* parent)
     : QDialog(parent)
+    , m_networkManager(nullptr)
+    , m_currentDownload(nullptr)
 {
     setWindowTitle(tr("Settings"));
     //setWindowIcon(QIcon(":/Icon/app.ico"));
@@ -32,6 +42,12 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 
 SettingsDialog::~SettingsDialog()
 {
+    // Прерываем текущую загрузку, если такая есть
+    if (m_currentDownload) {
+        m_currentDownload->abort();
+        m_currentDownload->deleteLater();
+        m_currentDownload = nullptr;
+    }
 }
 
 void SettingsDialog::setupUi()
@@ -47,6 +63,7 @@ void SettingsDialog::setupUi()
     createAudioTab();
     createLanguageTab();
     createAdvancedTab();
+    createResourcesTab();
     
     // Create buttons
     QDialogButtonBox* buttonBox = new QDialogButtonBox(this);
@@ -335,6 +352,106 @@ void SettingsDialog::createAdvancedTab()
     m_logLevelComboBox->setEnabled(false);
 }
 
+void SettingsDialog::createResourcesTab()
+{
+    QWidget* tab = new QWidget(this);
+    QVBoxLayout* layout = new QVBoxLayout(tab);
+    
+    // Создаем сетевой менеджер для загрузки ресурсов
+    m_networkManager = new QNetworkAccessManager(this);
+    m_currentDownload = nullptr;
+    
+    // Группа фильтрации и поиска
+    QGroupBox* filterGroup = new QGroupBox(tr("Поиск и фильтрация"), tab);
+    QHBoxLayout* filterLayout = new QHBoxLayout(filterGroup);
+    
+    // Фильтр по языку
+    QLabel* languageLabel = new QLabel(tr("Язык:"), filterGroup);
+    m_resourceLanguageComboBox = new QComboBox(filterGroup);
+    m_resourceLanguageComboBox->addItem(tr("Все языки"), "all");
+    m_resourceLanguageComboBox->addItem(tr("Английский"), "en");
+    m_resourceLanguageComboBox->addItem(tr("Русский"), "ru");
+    m_resourceLanguageComboBox->addItem(tr("Немецкий"), "de");
+    m_resourceLanguageComboBox->addItem(tr("Французский"), "fr");
+    m_resourceLanguageComboBox->addItem(tr("Испанский"), "es");
+    m_resourceLanguageComboBox->addItem(tr("Итальянский"), "it");
+    m_resourceLanguageComboBox->addItem(tr("Китайский"), "zh");
+    m_resourceLanguageComboBox->addItem(tr("Японский"), "ja");
+    
+    // Поиск по названию
+    QLabel* searchLabel = new QLabel(tr("Поиск:"), filterGroup);
+    m_resourceSearchEdit = new QLineEdit(filterGroup);
+    m_resourceSearchEdit->setPlaceholderText(tr("Введите текст для поиска"));
+    
+    // Добавляем в layout группы фильтрации
+    filterLayout->addWidget(languageLabel);
+    filterLayout->addWidget(m_resourceLanguageComboBox);
+    filterLayout->addWidget(searchLabel);
+    filterLayout->addWidget(m_resourceSearchEdit);
+    
+    // Список ресурсов
+    QGroupBox* resourcesGroup = new QGroupBox(tr("Доступные ресурсы"), tab);
+    QVBoxLayout* resourcesLayout = new QVBoxLayout(resourcesGroup);
+    
+    m_resourcesTreeWidget = new QTreeWidget(resourcesGroup);
+    m_resourcesTreeWidget->setColumnCount(5);
+    m_resourcesTreeWidget->setHeaderLabels({
+        tr("Название"), 
+        tr("Тип"), 
+        tr("Язык"), 
+        tr("Размер"),
+        tr("Статус")
+    });
+    m_resourcesTreeWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_resourcesTreeWidget->setRootIsDecorated(false);
+    m_resourcesTreeWidget->setSortingEnabled(true);
+    m_resourcesTreeWidget->sortByColumn(0, Qt::AscendingOrder);
+    
+    resourcesLayout->addWidget(m_resourcesTreeWidget);
+    
+    // Кнопки действий и прогресс загрузки
+    QGroupBox* actionsGroup = new QGroupBox(tr("Действия"), tab);
+    QVBoxLayout* actionsLayout = new QVBoxLayout(actionsGroup);
+    
+    m_downloadButton = new QPushButton(tr("Скачать выбранный ресурс"), actionsGroup);
+    m_downloadButton->setEnabled(false);
+    
+    m_downloadProgressBar = new QProgressBar(actionsGroup);
+    m_downloadProgressBar->setRange(0, 100);
+    m_downloadProgressBar->setValue(0);
+    m_downloadProgressBar->setVisible(false);
+    
+    m_downloadStatusLabel = new QLabel(actionsGroup);
+    m_downloadStatusLabel->setVisible(false);
+    
+    actionsLayout->addWidget(m_downloadButton);
+    actionsLayout->addWidget(m_downloadProgressBar);
+    actionsLayout->addWidget(m_downloadStatusLabel);
+    
+    // Добавляем группы в основной layout
+    layout->addWidget(filterGroup);
+    layout->addWidget(resourcesGroup);
+    layout->addWidget(actionsGroup);
+    
+    // Добавляем вкладку
+    m_tabWidget->addTab(tab, tr("Ресурсы"));
+    
+    // Подключаем сигналы
+    connect(m_resourceLanguageComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), 
+            this, &SettingsDialog::onLanguageFilterChanged);
+    connect(m_resourceSearchEdit, &QLineEdit::textChanged, 
+            this, &SettingsDialog::onResourceSearchTextChanged);
+    connect(m_resourcesTreeWidget, &QTreeWidget::itemSelectionChanged, 
+            [this]() {
+                m_downloadButton->setEnabled(!m_resourcesTreeWidget->selectedItems().isEmpty());
+            });
+    connect(m_downloadButton, &QPushButton::clicked, 
+            this, &SettingsDialog::onDownloadButtonClicked);
+            
+    // Заполняем список ресурсов начальными данными
+    populateResourcesList();
+}
+
 void SettingsDialog::loadSettings()
 {
     QSettings settings;
@@ -600,4 +717,326 @@ void SettingsDialog::onUsePublicApiToggled(bool checked) {
         m_apiKeyEdit->setEnabled(true);
         m_azureRegionEdit->setEnabled(true);
     }
+}
+
+void SettingsDialog::onLanguageFilterChanged(int index)
+{
+    QString languageFilter = m_resourceLanguageComboBox->itemData(index).toString();
+    if (languageFilter == "all") {
+        languageFilter = QString(); // пустая строка для "всех языков"
+    }
+    
+    populateResourcesList(languageFilter, m_resourceSearchEdit->text());
+}
+
+void SettingsDialog::onResourceSearchTextChanged(const QString& text)
+{
+    QString languageFilter = m_resourceLanguageComboBox->currentData().toString();
+    if (languageFilter == "all") {
+        languageFilter = QString();
+    }
+    
+    populateResourcesList(languageFilter, text);
+}
+
+void SettingsDialog::onDownloadButtonClicked()
+{
+    QList<QTreeWidgetItem*> selectedItems = m_resourcesTreeWidget->selectedItems();
+    if (selectedItems.isEmpty()) {
+        return;
+    }
+    
+    QTreeWidgetItem* item = selectedItems.first();
+    QString resourceId = item->data(0, Qt::UserRole).toString();
+    QString resourceUrl = item->data(1, Qt::UserRole).toString();
+    QString resourceType = item->text(1);
+    QString resourceLang = item->text(2);
+    
+    // Определяем путь для сохранения ресурса
+    QString destPath;
+    if (resourceType == tr("Модель")) {
+        destPath = QCoreApplication::applicationDirPath() + "/models/";
+    } 
+    else if (resourceType == tr("Словарь")) {
+        destPath = QCoreApplication::applicationDirPath() + "/dictionaries/";
+    }
+    else if (resourceType == tr("Библиотека")) {
+        destPath = QCoreApplication::applicationDirPath() + "/lib/";
+    }
+    else {
+        destPath = QCoreApplication::applicationDirPath() + "/resources/";
+    }
+    
+    // Создаем директорию, если не существует
+    QDir dir(destPath);
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+    
+    // Формируем полный путь файла
+    QString fileName = QFileInfo(resourceUrl).fileName();
+    if (fileName.isEmpty()) {
+        fileName = resourceId;
+    }
+    
+    // Добавляем префикс языка, если ресурс языкозависимый
+    if (!resourceLang.isEmpty() && resourceLang != "multi") {
+        if (!fileName.contains(resourceLang)) {
+            fileName = resourceLang + "_" + fileName;
+        }
+    }
+    
+    QString fullPath = destPath + fileName;
+    
+    // Начинаем загрузку
+    downloadResource(resourceUrl, fullPath);
+    
+    // Обновляем UI
+    m_downloadButton->setEnabled(false);
+    m_downloadProgressBar->setValue(0);
+    m_downloadProgressBar->setVisible(true);
+    m_downloadStatusLabel->setText(tr("Загрузка %1...").arg(fileName));
+    m_downloadStatusLabel->setVisible(true);
+}
+
+void SettingsDialog::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
+{
+    if (bytesTotal <= 0) {
+        m_downloadProgressBar->setRange(0, 0); // Бесконечный прогресс
+        return;
+    }
+    
+    int percent = static_cast<int>((bytesReceived * 100) / bytesTotal);
+    m_downloadProgressBar->setRange(0, 100);
+    m_downloadProgressBar->setValue(percent);
+    
+    m_downloadStatusLabel->setText(tr("Загрузка: %1 / %2 МБ (%3%)")
+        .arg(bytesReceived / 1024.0 / 1024.0, 0, 'f', 1)
+        .arg(bytesTotal / 1024.0 / 1024.0, 0, 'f', 1)
+        .arg(percent));
+}
+
+void SettingsDialog::onDownloadFinished()
+{
+    if (!m_currentDownload) {
+        return;
+    }
+    
+    if (m_currentDownload->error() == QNetworkReply::NoError) {
+        // Успешная загрузка
+        QUrl redirectUrl = m_currentDownload->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
+        if (!redirectUrl.isEmpty()) {
+            // Если это редирект, продолжаем загрузку по новому URL
+            QUrl newUrl = m_currentDownload->url().resolved(redirectUrl);
+            m_currentDownload->deleteLater();
+            
+            QNetworkRequest request(newUrl);
+            m_currentDownload = m_networkManager->get(request);
+            connect(m_currentDownload, &QNetworkReply::downloadProgress, 
+                    this, &SettingsDialog::onDownloadProgress);
+            connect(m_currentDownload, &QNetworkReply::finished, 
+                    this, &SettingsDialog::onDownloadFinished);
+                    
+            return;
+        }
+        
+        // Сохраняем файл
+        QString filePath = m_currentDownload->property("destinationPath").toString();
+        QFile file(filePath);
+        if (file.open(QIODevice::WriteOnly)) {
+            file.write(m_currentDownload->readAll());
+            file.close();
+            
+            m_downloadStatusLabel->setText(tr("Загрузка завершена"));
+            
+            // Обновляем статус ресурса в списке
+            QList<QTreeWidgetItem*> selectedItems = m_resourcesTreeWidget->selectedItems();
+            if (!selectedItems.isEmpty()) {
+                selectedItems.first()->setText(4, tr("Установлен"));
+            }
+        } 
+        else {
+            m_downloadStatusLabel->setText(tr("Ошибка сохранения файла"));
+        }
+    } 
+    else {
+        // Ошибка загрузки
+        m_downloadStatusLabel->setText(tr("Ошибка загрузки: %1").arg(m_currentDownload->errorString()));
+    }
+    
+    m_currentDownload->deleteLater();
+    m_currentDownload = nullptr;
+    
+    m_downloadButton->setEnabled(true);
+    m_downloadProgressBar->setValue(100);
+    
+    // Обновляем список ресурсов
+    QString languageFilter = m_resourceLanguageComboBox->currentData().toString();
+    if (languageFilter == "all") {
+        languageFilter = QString();
+    }
+    populateResourcesList(languageFilter, m_resourceSearchEdit->text());
+}
+
+void SettingsDialog::populateResourcesList(const QString& languageFilter, const QString& searchText)
+{
+    // Сохраняем выбранный элемент
+    QString selectedResourceId;
+    QList<QTreeWidgetItem*> selectedItems = m_resourcesTreeWidget->selectedItems();
+    if (!selectedItems.isEmpty()) {
+        selectedResourceId = selectedItems.first()->data(0, Qt::UserRole).toString();
+    }
+    
+    // Очищаем список
+    m_resourcesTreeWidget->clear();
+    
+    // Формируем данные о доступных ресурсах
+    struct ResourceInfo {
+        QString id;         // Уникальный идентификатор
+        QString name;       // Отображаемое имя
+        QString type;       // Тип (модель, словарь и т.д.)
+        QString language;   // Язык (en, ru, multi и т.д.)
+        QString size;       // Размер в МБ
+        QString url;        // URL для скачивания
+    };
+    
+    // Список всех доступных ресурсов
+    // В реальном приложении эти данные должны загружаться из сети или из локального файла конфигурации
+    QList<ResourceInfo> availableResources = {
+        // Модели Whisper для разных языков
+        {"whisper-tiny-en", "Whisper Tiny", tr("Модель"), "en", "75 MB", 
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en.bin"},
+        {"whisper-base-en", "Whisper Base", tr("Модель"), "en", "142 MB", 
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin"},
+        {"whisper-small-en", "Whisper Small", tr("Модель"), "en", "466 MB", 
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin"},
+        {"whisper-tiny-ru", "Whisper Tiny", tr("Модель"), "ru", "75 MB", 
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin"},
+        {"whisper-base-ru", "Whisper Base", tr("Модель"), "ru", "142 MB", 
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin"},
+        
+        // Модели DeepSpeech для разных языков
+        {"deepspeech-en", "DeepSpeech English", tr("Модель"), "en", "188 MB", 
+            "https://github.com/mozilla/DeepSpeech/releases/download/v0.9.3/deepspeech-0.9.3-models.pbmm"},
+        {"deepspeech-ru", "DeepSpeech Russian", tr("Модель"), "ru", "45 MB", 
+            "https://github.com/alphacep/vosk-model/releases/download/small-ru/vosk-model-small-ru-0.22.zip"},
+        
+        // Словари
+        {"dictionary-en", "English Dictionary", tr("Словарь"), "en", "5 MB", 
+            "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt"},
+        {"dictionary-ru", "Russian Dictionary", tr("Словарь"), "ru", "7 MB", 
+            "https://raw.githubusercontent.com/danakt/russian-words/master/russian.txt"},
+        
+        // Библиотеки
+        {"deepspeech-lib-win-x64", "DeepSpeech Windows x64", tr("Библиотека"), "multi", "2.5 MB", 
+            "https://github.com/mozilla/DeepSpeech/releases/download/v0.9.3/native_client.amd64.win.tar.xz"},
+        {"deepspeech-lib-linux-x64", "DeepSpeech Linux x64", tr("Библиотека"), "multi", "2.8 MB", 
+            "https://github.com/mozilla/DeepSpeech/releases/download/v0.9.3/native_client.amd64.linux.tar.xz"}
+    };
+    
+    // Фильтрация списка по языку и тексту поиска
+    QList<ResourceInfo> filteredResources;
+    for (const ResourceInfo& info : availableResources) {
+        bool matchesLanguage = languageFilter.isEmpty() || info.language == languageFilter || info.language == "multi";
+        bool matchesSearch = searchText.isEmpty() || 
+                             info.name.contains(searchText, Qt::CaseInsensitive) || 
+                             info.type.contains(searchText, Qt::CaseInsensitive);
+        
+        if (matchesLanguage && matchesSearch) {
+            filteredResources.append(info);
+        }
+    }
+    
+    // Заполняем список отфильтрованными ресурсами
+    for (const ResourceInfo& info : filteredResources) {
+        QTreeWidgetItem* item = new QTreeWidgetItem(m_resourcesTreeWidget);
+        item->setText(0, info.name);
+        item->setText(1, info.type);
+        item->setText(2, info.language);
+        item->setText(3, info.size);
+        
+        // Определяем статус ресурса
+        if (isResourceInstalled(info.id)) {
+            item->setText(4, tr("Установлен"));
+        } else {
+            item->setText(4, tr("Не установлен"));
+        }
+        
+        // Сохраняем дополнительные данные
+        item->setData(0, Qt::UserRole, info.id);
+        item->setData(1, Qt::UserRole, info.url);
+        
+        // Восстанавливаем выделение
+        if (info.id == selectedResourceId) {
+            m_resourcesTreeWidget->setCurrentItem(item);
+        }
+    }
+    
+    // Подгоняем размер колонок
+    for (int i = 0; i < m_resourcesTreeWidget->columnCount(); ++i) {
+        m_resourcesTreeWidget->resizeColumnToContents(i);
+    }
+    
+    // Обновляем состояние кнопки загрузки
+    m_downloadButton->setEnabled(!m_resourcesTreeWidget->selectedItems().isEmpty());
+}
+
+void SettingsDialog::downloadResource(const QString& resourceUrl, const QString& destPath)
+{
+    // Прерываем текущую загрузку, если она есть
+    if (m_currentDownload) {
+        m_currentDownload->abort();
+        m_currentDownload->deleteLater();
+        m_currentDownload = nullptr;
+    }
+    
+    // Создаем запрос
+    QNetworkRequest request(QUrl(resourceUrl));
+    
+    // Начинаем загрузку
+    m_currentDownload = m_networkManager->get(request);
+    m_currentDownload->setProperty("destinationPath", destPath);
+    
+    // Подключаем сигналы
+    connect(m_currentDownload, &QNetworkReply::downloadProgress, 
+            this, &SettingsDialog::onDownloadProgress);
+    connect(m_currentDownload, &QNetworkReply::finished, 
+            this, &SettingsDialog::onDownloadFinished);
+}
+
+bool SettingsDialog::isResourceInstalled(const QString& resourceId)
+{
+    // Определяем пути и имена файлов для разных типов ресурсов
+    QString appDir = QCoreApplication::applicationDirPath();
+    
+    // Структура данных: {ид_ресурса -> {путь, имя_файла}}
+    QMap<QString, QPair<QString, QString>> resourcePaths = {
+        // Модели Whisper
+        {"whisper-tiny-en", {appDir + "/models/", "ggml-tiny.en.bin"}},
+        {"whisper-base-en", {appDir + "/models/", "ggml-base.en.bin"}},
+        {"whisper-small-en", {appDir + "/models/", "ggml-small.en.bin"}},
+        {"whisper-tiny-ru", {appDir + "/models/", "ru_ggml-tiny.bin"}},
+        {"whisper-base-ru", {appDir + "/models/", "ru_ggml-base.bin"}},
+        
+        // Модели DeepSpeech
+        {"deepspeech-en", {appDir + "/models/", "deepspeech-0.9.3-models.pbmm"}},
+        {"deepspeech-ru", {appDir + "/models/", "ru_deepspeech-0.9.3-models-ru.pbmm"}},
+        
+        // Словари
+        {"dictionary-en", {appDir + "/dictionaries/", "en_words_alpha.txt"}},
+        {"dictionary-ru", {appDir + "/dictionaries/", "ru_russian.txt"}},
+        
+        // Библиотеки
+        {"deepspeech-lib-win-x64", {appDir + "/lib/", "libdeepspeech.dll"}},
+        {"deepspeech-lib-linux-x64", {appDir + "/lib/", "libdeepspeech.so"}}
+    };
+    
+    // Проверяем существование файла
+    if (resourcePaths.contains(resourceId)) {
+        const auto& pathInfo = resourcePaths[resourceId];
+        QString fullPath = pathInfo.first + pathInfo.second;
+        return QFile::exists(fullPath);
+    }
+    
+    return false;
 } 
