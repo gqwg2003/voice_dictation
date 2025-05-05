@@ -5,6 +5,7 @@
 #include "recognition_services/GoogleRecognitionService.h"
 #include "recognition_services/AzureRecognitionService.h"
 #include "recognition_services/YandexRecognitionService.h"
+#include "recognition_services/DeepSpeechRecognitionService.h"
 #include "../utils/Logger.h"
 
 #include <QDebug>
@@ -240,8 +241,9 @@ void SpeechRecognizer::setUsePublicApi(bool usePublic)
                 static_cast<AzureRecognitionService*>(m_recognitionService.get())->setPublicApiEnabled(usePublic);
                 break;
                 
-            default:
-                // No public API for offline
+            case RecognitionServiceType::Offline:
+            case RecognitionServiceType::DeepSpeech:
+                // No public API for offline services
                 break;
         }
     }
@@ -372,6 +374,10 @@ void SpeechRecognizer::createRecognitionService()
         case RecognitionServiceType::Yandex:
             m_recognitionService = std::make_unique<YandexRecognitionService>(this);
             static_cast<YandexRecognitionService*>(m_recognitionService.get())->setPublicApiEnabled(m_usePublicApi);
+            break;
+            
+        case RecognitionServiceType::DeepSpeech:
+            m_recognitionService = std::make_unique<DeepSpeechRecognitionService>(this);
             break;
     }
     

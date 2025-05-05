@@ -266,6 +266,8 @@ void MainWindow::loadSettings()
             m_speechRecognizer->setRecognitionService(RecognitionServiceType::Yandex);
         } else if (service == "azure") {
             m_speechRecognizer->setRecognitionService(RecognitionServiceType::Azure);
+        } else if (service == "deepspeech") {
+            m_speechRecognizer->setRecognitionService(RecognitionServiceType::DeepSpeech);
         } else {
             m_speechRecognizer->setRecognitionService(RecognitionServiceType::Offline);
         }
@@ -572,6 +574,8 @@ void MainWindow::applySettings()
             serviceType = RecognitionServiceType::Yandex;
         } else if (service == "azure") {
             serviceType = RecognitionServiceType::Azure;
+        } else if (service == "deepspeech") {
+            serviceType = RecognitionServiceType::DeepSpeech;
         }
         
         m_speechRecognizer->setRecognitionService(serviceType);

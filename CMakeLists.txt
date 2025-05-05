@@ -72,6 +72,63 @@ if(USE_WHISPER)
     endif()
 endif()
 
+# Try to find DeepSpeech library
+option(USE_DEEPSPEECH "Use Mozilla DeepSpeech for speech recognition" ON)
+if(USE_DEEPSPEECH)
+    # Set DeepSpeech paths - try to find in common locations
+    set(DEEPSPEECH_ROOT_DIR "" CACHE PATH "Root directory for DeepSpeech library")
+    
+    # Look in common locations if not specified
+    if(NOT DEEPSPEECH_ROOT_DIR)
+        # Windows common locations
+        if(WIN32)
+            list(APPEND DEEPSPEECH_SEARCH_PATHS
+                "C:/Program Files/DeepSpeech"
+                "C:/Program Files (x86)/DeepSpeech"
+                "C:/DeepSpeech"
+                "${CMAKE_SOURCE_DIR}/third_party/deepspeech"
+            )
+        endif()
+        
+        # Linux/macOS common locations
+        if(UNIX)
+            list(APPEND DEEPSPEECH_SEARCH_PATHS
+                "/usr/local/include/deepspeech"
+                "/usr/include/deepspeech"
+                "${CMAKE_SOURCE_DIR}/third_party/deepspeech"
+                "$ENV{HOME}/deepspeech"
+            )
+        endif()
+        
+        # Try to find deepspeech.h
+        find_path(DEEPSPEECH_INCLUDE_DIR deepspeech.h
+            PATHS ${DEEPSPEECH_SEARCH_PATHS}
+            PATH_SUFFIXES include 
+        )
+        
+        # Try to find library
+        find_library(DEEPSPEECH_LIBRARY
+            NAMES deepspeech
+            PATHS ${DEEPSPEECH_SEARCH_PATHS}
+            PATH_SUFFIXES lib
+        )
+        
+        if(DEEPSPEECH_INCLUDE_DIR AND DEEPSPEECH_LIBRARY)
+            set(DEEPSPEECH_FOUND TRUE)
+            message(STATUS "Found DeepSpeech: ${DEEPSPEECH_LIBRARY}")
+            message(STATUS "DeepSpeech include: ${DEEPSPEECH_INCLUDE_DIR}")
+        else()
+            set(DEEPSPEECH_FOUND FALSE)
+            message(STATUS "DeepSpeech not found, this recognition option will be disabled")
+        endif()
+    endif()
+    
+    if(DEEPSPEECH_FOUND)
+        add_definitions(-DHAVE_DEEPSPEECH)
+        include_directories(${DEEPSPEECH_INCLUDE_DIR})
+    endif()
+endif()
+
 # Add include directories
 include_directories(${CMAKE_SOURCE_DIR})
 
@@ -82,6 +139,7 @@ set(RECOGNITION_SERVICES
     src/core/recognition_services/GoogleRecognitionService.cpp
     src/core/recognition_services/AzureRecognitionService.cpp
     src/core/recognition_services/YandexRecognitionService.cpp
+    src/core/recognition_services/DeepSpeechRecognitionService.cpp
 )
 
 # Settings tabs files
@@ -137,6 +195,7 @@ set(HEADERS
     src/core/recognition_services/GoogleRecognitionService.h
     src/core/recognition_services/AzureRecognitionService.h
     src/core/recognition_services/YandexRecognitionService.h
+    src/core/recognition_services/DeepSpeechRecognitionService.h
     # These will be implemented in the next phase
     # src/gui/settings_tabs/GeneralTab.h
     # src/gui/settings_tabs/AudioTab.h
@@ -168,6 +227,11 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 # Link Whisper if found
 if(WHISPER_FOUND)
     target_link_libraries(${PROJECT_NAME} PRIVATE ${WHISPER_LIBRARY})
+endif()
+
+# Link DeepSpeech if found
+if(DEEPSPEECH_FOUND)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${DEEPSPEECH_LIBRARY})
 endif()
 
 # Install target
@@ -218,9 +282,10 @@ message(STATUS "Project configuration:")
 message(STATUS "  CXX Standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "  Qt version: ${Qt6_VERSION}")
 message(STATUS "  Whisper support: ${WHISPER_FOUND}")
+message(STATUS "  DeepSpeech support: ${DEEPSPEECH_FOUND}")
 
 # Create models directory with README
 if(NOT EXISTS ${CMAKE_SOURCE_DIR}/models)
     file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/models)
-    file(WRITE ${CMAKE_SOURCE_DIR}/models/README.txt "Place Whisper models here.\n\nRecommended models:\n- ggml-base-en.bin for English\n- ggml-base-ru.bin for Russian\n\nModels can be downloaded from: https://huggingface.co/ggerganov/whisper.cpp")
+    file(WRITE ${CMAKE_SOURCE_DIR}/models/README.txt "Place models here.\n\nRecommended models:\n- ggml-base-en.bin for Whisper English\n- ggml-base-ru.bin for Whisper Russian\n- deepspeech-0.9.3-models.pbmm for DeepSpeech English\n\nWhisper models can be downloaded from: https://huggingface.co/ggerganov/whisper.cpp\nDeepSpeech models can be downloaded from: https://github.com/mozilla/DeepSpeech/releases")
 endif() 

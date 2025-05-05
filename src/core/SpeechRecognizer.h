@@ -18,7 +18,8 @@ enum class RecognitionServiceType {
     Offline,  // Whisper
     Google,
     Yandex,
-    Azure
+    Azure,
+    DeepSpeech
 };
 
 class SpeechRecognizer : public QObject {

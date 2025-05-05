@@ -222,6 +222,7 @@ void SettingsDialog::createLanguageTab()
     QFormLayout* formLayout = new QFormLayout();
     m_recognitionServiceComboBox = new QComboBox(serviceGroup);
     m_recognitionServiceComboBox->addItem("Whisper Local", "whisper");
+    m_recognitionServiceComboBox->addItem("DeepSpeech Local", "deepspeech");
     m_recognitionServiceComboBox->addItem("Google Speech API", "google");
     m_recognitionServiceComboBox->addItem("Microsoft Azure", "azure");
     m_recognitionServiceComboBox->addItem("Yandex SpeechKit", "yandex");
@@ -568,7 +569,7 @@ void SettingsDialog::handleRecognitionServiceChanged(int index)
     m_tabWidget->parentWidget()->findChild<QLabel*>()->setVisible(isAzure);
     
     // Show/hide API key input based on service
-    bool needsApiKey = (service != "whisper");
+    bool needsApiKey = (service != "whisper" && service != "deepspeech");
     m_apiKeyEdit->setVisible(needsApiKey);
     
     // Update labels and tooltips
