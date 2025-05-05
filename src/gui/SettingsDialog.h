@@ -16,6 +16,12 @@
 #include <QListWidget>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QNetworkProxy>
+#include <QTemporaryFile>
+#include <QFile>
+#include <QVector>
+#include <QMutex>
+#include <QElapsedTimer>
 
 class SettingsDialog : public QDialog {
     Q_OBJECT
@@ -36,8 +42,12 @@ private slots:
     void onLanguageFilterChanged(int index);
     void onResourceSearchTextChanged(const QString& text);
     void onDownloadButtonClicked();
+    void onPauseResumeButtonClicked();
+    void onCancelButtonClicked();
     void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
     void onDownloadFinished();
+    void onProxyTypeChanged(int index);
+    void onSegmentDownloadFinished();
 
 private:
     // UI setup
@@ -61,8 +71,25 @@ private:
     
     // Resource management
     void populateResourcesList(const QString& languageFilter = QString(), const QString& searchText = QString());
-    void downloadResource(const QString& resourceId, const QString& destPath);
+    void downloadResource(const QString& resourceUrl, const QString& destPath);
     bool isResourceInstalled(const QString& resourceId);
+    void updateDownloadControls(bool isDownloading, bool isPaused = false);
+    void setupProxy();
+    void startSegmentedDownload(const QString& url, const QString& destPath, int segmentCount = 4);
+    void downloadSegment(const QString& url, const QString& destPath, int segmentIndex, qint64 startByte, qint64 endByte);
+    void combineSegments(const QString& destPath, int segmentCount);
+
+    // Helper classes for multi-threaded download
+    struct DownloadSegment {
+        int index;
+        qint64 startByte;
+        qint64 endByte;
+        qint64 bytesReceived;
+        qint64 bytesTotal;
+        QNetworkReply* reply;
+        QTemporaryFile* tempFile;
+        bool completed;
+    };
 
 private:
     QTabWidget* m_tabWidget;
@@ -106,12 +133,40 @@ private:
     QLineEdit* m_resourceSearchEdit;
     QTreeWidget* m_resourcesTreeWidget;
     QPushButton* m_downloadButton;
+    QPushButton* m_pauseResumeButton;
+    QPushButton* m_cancelDownloadButton;
     QProgressBar* m_downloadProgressBar;
     QLabel* m_downloadStatusLabel;
+    
+    // Download state
+    bool m_isPaused;
+    bool m_isDownloading;
+    QString m_currentResourceId;
+    QString m_currentResourceUrl;
+    QString m_currentDestPath;
+    qint64 m_resumePosition;
+    QElapsedTimer m_downloadTimer;
+    
+    // Multi-threaded download
+    QVector<DownloadSegment*> m_segments;
+    int m_completedSegments;
+    QMutex m_segmentsMutex;
+    bool m_useMultiThreaded;
+    QSpinBox* m_threadCountSpinBox;
+    
+    // Proxy settings
+    QGroupBox* m_proxyGroup;
+    QComboBox* m_proxyTypeComboBox;
+    QLineEdit* m_proxyHostEdit;
+    QSpinBox* m_proxyPortSpinBox;
+    QLineEdit* m_proxyUserEdit;
+    QLineEdit* m_proxyPasswordEdit;
+    QCheckBox* m_useProxyCheckBox;
     
     // Network
     QNetworkAccessManager* m_networkManager;
     QNetworkReply* m_currentDownload;
+    QNetworkProxy m_networkProxy;
     
     // Dialog buttons
     QPushButton* m_okButton;

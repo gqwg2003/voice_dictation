@@ -22,6 +22,8 @@
 #include <QFileInfo>
 #include <QCoreApplication>
 #include <QFile>
+#include <QMutex>
+#include <QTemporaryFile>
 
 // External global logger
 extern Logger* gLogger;
@@ -30,6 +32,14 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     : QDialog(parent)
     , m_networkManager(nullptr)
     , m_currentDownload(nullptr)
+    , m_isPaused(false)
+    , m_isDownloading(false)
+    , m_resumePosition(0)
+    , m_completedSegments(0)
+    , m_useMultiThreaded(false)
+    , m_currentResourceId("")
+    , m_currentResourceUrl("")
+    , m_currentDestPath("")
 {
     setWindowTitle(tr("Settings"));
     //setWindowIcon(QIcon(":/Icon/app.ico"));
@@ -48,6 +58,20 @@ SettingsDialog::~SettingsDialog()
         m_currentDownload->deleteLater();
         m_currentDownload = nullptr;
     }
+    
+    // Освобождаем ресурсы сегментированной загрузки
+    for (auto segment : m_segments) {
+        if (segment->reply) {
+            segment->reply->abort();
+            segment->reply->deleteLater();
+        }
+        if (segment->tempFile) {
+            segment->tempFile->close();
+            delete segment->tempFile;
+        }
+        delete segment;
+    }
+    m_segments.clear();
 }
 
 void SettingsDialog::setupUi()
@@ -413,9 +437,25 @@ void SettingsDialog::createResourcesTab()
     QGroupBox* actionsGroup = new QGroupBox(tr("Действия"), tab);
     QVBoxLayout* actionsLayout = new QVBoxLayout(actionsGroup);
     
+    // Создаем горизонтальный layout для кнопок
+    QHBoxLayout* buttonsLayout = new QHBoxLayout();
+    
+    // Кнопки управления загрузкой
     m_downloadButton = new QPushButton(tr("Скачать выбранный ресурс"), actionsGroup);
     m_downloadButton->setEnabled(false);
     
+    m_pauseResumeButton = new QPushButton(tr("Пауза"), actionsGroup);
+    m_pauseResumeButton->setEnabled(false);
+    
+    m_cancelDownloadButton = new QPushButton(tr("Отмена"), actionsGroup);
+    m_cancelDownloadButton->setEnabled(false);
+    
+    // Добавляем кнопки в горизонтальный layout
+    buttonsLayout->addWidget(m_downloadButton);
+    buttonsLayout->addWidget(m_pauseResumeButton);
+    buttonsLayout->addWidget(m_cancelDownloadButton);
+    
+    // Прогресс загрузки
     m_downloadProgressBar = new QProgressBar(actionsGroup);
     m_downloadProgressBar->setRange(0, 100);
     m_downloadProgressBar->setValue(0);
@@ -424,9 +464,89 @@ void SettingsDialog::createResourcesTab()
     m_downloadStatusLabel = new QLabel(actionsGroup);
     m_downloadStatusLabel->setVisible(false);
     
-    actionsLayout->addWidget(m_downloadButton);
+    // Опции многопоточной загрузки
+    QGroupBox* downloadOptionsGroup = new QGroupBox(tr("Настройки загрузки"), actionsGroup);
+    QFormLayout* downloadOptionsLayout = new QFormLayout(downloadOptionsGroup);
+    
+    QCheckBox* useMultiThreadedCheckBox = new QCheckBox(tr("Многопоточная загрузка"), downloadOptionsGroup);
+    m_threadCountSpinBox = new QSpinBox(downloadOptionsGroup);
+    m_threadCountSpinBox->setRange(2, 8);
+    m_threadCountSpinBox->setValue(4);
+    m_threadCountSpinBox->setEnabled(false);
+    
+    downloadOptionsLayout->addRow(useMultiThreadedCheckBox);
+    downloadOptionsLayout->addRow(tr("Количество потоков:"), m_threadCountSpinBox);
+    
+    // Соединяем сигнал переключателя с состоянием спиннера
+    connect(useMultiThreadedCheckBox, &QCheckBox::toggled, [this](bool checked) {
+        m_useMultiThreaded = checked;
+        m_threadCountSpinBox->setEnabled(checked);
+    });
+    
+    // Группа настроек прокси
+    m_proxyGroup = new QGroupBox(tr("Настройки прокси/VPN"), actionsGroup);
+    QFormLayout* proxyLayout = new QFormLayout(m_proxyGroup);
+    
+    m_useProxyCheckBox = new QCheckBox(tr("Использовать прокси"), m_proxyGroup);
+    
+    m_proxyTypeComboBox = new QComboBox(m_proxyGroup);
+    m_proxyTypeComboBox->addItem(tr("HTTP"), QNetworkProxy::HttpProxy);
+    m_proxyTypeComboBox->addItem(tr("SOCKS5"), QNetworkProxy::Socks5Proxy);
+    m_proxyTypeComboBox->addItem(tr("Системный"), QNetworkProxy::DefaultProxy);
+    m_proxyTypeComboBox->setEnabled(false);
+    
+    m_proxyHostEdit = new QLineEdit(m_proxyGroup);
+    m_proxyHostEdit->setEnabled(false);
+    m_proxyHostEdit->setPlaceholderText("proxy.example.com");
+    
+    m_proxyPortSpinBox = new QSpinBox(m_proxyGroup);
+    m_proxyPortSpinBox->setRange(1, 65535);
+    m_proxyPortSpinBox->setValue(8080);
+    m_proxyPortSpinBox->setEnabled(false);
+    
+    m_proxyUserEdit = new QLineEdit(m_proxyGroup);
+    m_proxyUserEdit->setEnabled(false);
+    m_proxyUserEdit->setPlaceholderText(tr("Имя пользователя (необязательно)"));
+    
+    m_proxyPasswordEdit = new QLineEdit(m_proxyGroup);
+    m_proxyPasswordEdit->setEnabled(false);
+    m_proxyPasswordEdit->setEchoMode(QLineEdit::Password);
+    m_proxyPasswordEdit->setPlaceholderText(tr("Пароль (необязательно)"));
+    
+    proxyLayout->addRow("", m_useProxyCheckBox);
+    proxyLayout->addRow(tr("Тип прокси:"), m_proxyTypeComboBox);
+    proxyLayout->addRow(tr("Хост:"), m_proxyHostEdit);
+    proxyLayout->addRow(tr("Порт:"), m_proxyPortSpinBox);
+    proxyLayout->addRow(tr("Пользователь:"), m_proxyUserEdit);
+    proxyLayout->addRow(tr("Пароль:"), m_proxyPasswordEdit);
+    
+    // Соединяем сигнал переключателя прокси с состоянием элементов управления
+    connect(m_useProxyCheckBox, &QCheckBox::toggled, [this](bool checked) {
+        m_proxyTypeComboBox->setEnabled(checked);
+        m_proxyHostEdit->setEnabled(checked);
+        m_proxyPortSpinBox->setEnabled(checked);
+        m_proxyUserEdit->setEnabled(checked);
+        m_proxyPasswordEdit->setEnabled(checked);
+        
+        if (checked) {
+            setupProxy();
+        } else {
+            // Сбрасываем прокси на прямое соединение
+            m_networkProxy.setType(QNetworkProxy::NoProxy);
+            m_networkManager->setProxy(m_networkProxy);
+        }
+    });
+    
+    // Соединяем сигнал изменения типа прокси
+    connect(m_proxyTypeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), 
+            this, &SettingsDialog::onProxyTypeChanged);
+    
+    // Добавляем элементы в layout группы действий
+    actionsLayout->addLayout(buttonsLayout);
     actionsLayout->addWidget(m_downloadProgressBar);
     actionsLayout->addWidget(m_downloadStatusLabel);
+    actionsLayout->addWidget(downloadOptionsGroup);
+    actionsLayout->addWidget(m_proxyGroup);
     
     // Добавляем группы в основной layout
     layout->addWidget(filterGroup);
@@ -443,10 +563,14 @@ void SettingsDialog::createResourcesTab()
             this, &SettingsDialog::onResourceSearchTextChanged);
     connect(m_resourcesTreeWidget, &QTreeWidget::itemSelectionChanged, 
             [this]() {
-                m_downloadButton->setEnabled(!m_resourcesTreeWidget->selectedItems().isEmpty());
+                m_downloadButton->setEnabled(!m_resourcesTreeWidget->selectedItems().isEmpty() && !m_isDownloading);
             });
     connect(m_downloadButton, &QPushButton::clicked, 
             this, &SettingsDialog::onDownloadButtonClicked);
+    connect(m_pauseResumeButton, &QPushButton::clicked,
+            this, &SettingsDialog::onPauseResumeButtonClicked);
+    connect(m_cancelDownloadButton, &QPushButton::clicked,
+            this, &SettingsDialog::onCancelButtonClicked);
             
     // Заполняем список ресурсов начальными данными
     populateResourcesList();
@@ -742,13 +866,13 @@ void SettingsDialog::onResourceSearchTextChanged(const QString& text)
 void SettingsDialog::onDownloadButtonClicked()
 {
     QList<QTreeWidgetItem*> selectedItems = m_resourcesTreeWidget->selectedItems();
-    if (selectedItems.isEmpty()) {
+    if (selectedItems.isEmpty() || m_isDownloading) {
         return;
     }
     
     QTreeWidgetItem* item = selectedItems.first();
-    QString resourceId = item->data(0, Qt::UserRole).toString();
-    QString resourceUrl = item->data(1, Qt::UserRole).toString();
+    m_currentResourceId = item->data(0, Qt::UserRole).toString();
+    m_currentResourceUrl = item->data(1, Qt::UserRole).toString();
     QString resourceType = item->text(1);
     QString resourceLang = item->text(2);
     
@@ -774,9 +898,9 @@ void SettingsDialog::onDownloadButtonClicked()
     }
     
     // Формируем полный путь файла
-    QString fileName = QFileInfo(resourceUrl).fileName();
+    QString fileName = QFileInfo(m_currentResourceUrl).fileName();
     if (fileName.isEmpty()) {
-        fileName = resourceId;
+        fileName = m_currentResourceId;
     }
     
     // Добавляем префикс языка, если ресурс языкозависимый
@@ -786,39 +910,75 @@ void SettingsDialog::onDownloadButtonClicked()
         }
     }
     
-    QString fullPath = destPath + fileName;
+    m_currentDestPath = destPath + fileName;
+    
+    // Устанавливаем прокси, если настроен
+    if (m_useProxyCheckBox->isChecked()) {
+        setupProxy();
+    }
+    
+    // Сбрасываем состояние загрузки
+    m_resumePosition = 0;
+    m_isPaused = false;
+    
+    // Запускаем таймер для отслеживания скорости
+    m_downloadTimer.start();
     
     // Начинаем загрузку
-    downloadResource(resourceUrl, fullPath);
+    if (m_useMultiThreaded) {
+        // Используем многопоточную загрузку
+        int threadCount = m_threadCountSpinBox->value();
+        startSegmentedDownload(m_currentResourceUrl, m_currentDestPath, threadCount);
+    } else {
+        // Используем обычную загрузку
+        downloadResource(m_currentResourceUrl, m_currentDestPath);
+    }
     
     // Обновляем UI
-    m_downloadButton->setEnabled(false);
+    updateDownloadControls(true);
     m_downloadProgressBar->setValue(0);
-    m_downloadProgressBar->setVisible(true);
     m_downloadStatusLabel->setText(tr("Загрузка %1...").arg(fileName));
-    m_downloadStatusLabel->setVisible(true);
 }
 
 void SettingsDialog::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 {
-    if (bytesTotal <= 0) {
-        m_downloadProgressBar->setRange(0, 0); // Бесконечный прогресс
+    if (!m_isDownloading || m_isPaused) {
         return;
     }
     
-    int percent = static_cast<int>((bytesReceived * 100) / bytesTotal);
-    m_downloadProgressBar->setRange(0, 100);
-    m_downloadProgressBar->setValue(percent);
-    
-    m_downloadStatusLabel->setText(tr("Загрузка: %1 / %2 МБ (%3%)")
-        .arg(bytesReceived / 1024.0 / 1024.0, 0, 'f', 1)
-        .arg(bytesTotal / 1024.0 / 1024.0, 0, 'f', 1)
-        .arg(percent));
+    // Прогресс для обычной загрузки
+    if (!m_useMultiThreaded) {
+        if (bytesTotal <= 0) {
+            m_downloadProgressBar->setRange(0, 0); // Бесконечный прогресс
+            return;
+        }
+        
+        // Учитываем ранее загруженные байты при возобновлении
+        qint64 totalReceived = m_resumePosition + bytesReceived;
+        int percent = static_cast<int>((totalReceived * 100) / (m_resumePosition + bytesTotal));
+        m_downloadProgressBar->setRange(0, 100);
+        m_downloadProgressBar->setValue(percent);
+        
+        // Рассчитываем скорость загрузки
+        double elapsedSecs = m_downloadTimer.elapsed() / 1000.0;
+        double speed = 0.0;
+        if (elapsedSecs > 0) {
+            speed = bytesReceived / elapsedSecs / 1024.0; // KB/s
+        }
+        
+        m_downloadStatusLabel->setText(tr("Загрузка: %1 / %2 МБ (%3%) - %4 КБ/с")
+            .arg(totalReceived / 1024.0 / 1024.0, 0, 'f', 1)
+            .arg((m_resumePosition + bytesTotal) / 1024.0 / 1024.0, 0, 'f', 1)
+            .arg(percent)
+            .arg(speed, 0, 'f', 1));
+    } else {
+        // Для многопоточной загрузки прогресс обновляется отдельно
+    }
 }
 
 void SettingsDialog::onDownloadFinished()
 {
-    if (!m_currentDownload) {
+    if (!m_currentDownload || m_isPaused) {
         return;
     }
     
@@ -845,7 +1005,10 @@ void SettingsDialog::onDownloadFinished()
         // Сохраняем файл
         QString filePath = m_currentDownload->property("destinationPath").toString();
         QFile file(filePath);
-        if (file.open(QIODevice::WriteOnly)) {
+        
+        // Открываем файл в режиме добавления или записи в зависимости от наличия m_resumePosition
+        QIODevice::OpenMode mode = m_resumePosition > 0 ? QIODevice::Append : QIODevice::WriteOnly;
+        if (file.open(mode)) {
             file.write(m_currentDownload->readAll());
             file.close();
             
@@ -869,8 +1032,13 @@ void SettingsDialog::onDownloadFinished()
     m_currentDownload->deleteLater();
     m_currentDownload = nullptr;
     
-    m_downloadButton->setEnabled(true);
-    m_downloadProgressBar->setValue(100);
+    // Сбрасываем состояние загрузки
+    m_isDownloading = false;
+    m_isPaused = false;
+    m_resumePosition = 0;
+    
+    // Обновляем UI
+    updateDownloadControls(false);
     
     // Обновляем список ресурсов
     QString languageFilter = m_resourceLanguageComboBox->currentData().toString();
@@ -878,6 +1046,402 @@ void SettingsDialog::onDownloadFinished()
         languageFilter = QString();
     }
     populateResourcesList(languageFilter, m_resourceSearchEdit->text());
+}
+
+void SettingsDialog::startSegmentedDownload(const QString& url, const QString& destPath, int segmentCount)
+{
+    // Получаем размер файла для segmented download
+    QNetworkRequest headRequest;
+    headRequest.setUrl(QUrl(url));
+    
+    QNetworkReply* headReply = m_networkManager->head(headRequest);
+    connect(headReply, &QNetworkReply::finished, [this, url, destPath, segmentCount, headReply]() {
+        if (headReply->error() != QNetworkReply::NoError) {
+            // Ошибка получения информации о файле, переходим к обычной загрузке
+            gLogger->warning("Failed to get file size, using single-threaded download");
+            downloadResource(url, destPath);
+            headReply->deleteLater();
+            return;
+        }
+        
+        // Получаем размер файла
+        qint64 fileSize = headReply->header(QNetworkRequest::ContentLengthHeader).toLongLong();
+        headReply->deleteLater();
+        
+        if (fileSize <= 0) {
+            // Размер неизвестен или ноль, переходим к обычной загрузке
+            gLogger->warning("Unknown file size, using single-threaded download");
+            downloadResource(url, destPath);
+            return;
+        }
+        
+        // Проверяем поддержку Range requests
+        bool supportsRange = headReply->hasRawHeader("Accept-Ranges") && 
+                            QString(headReply->rawHeader("Accept-Ranges")) != "none";
+                           
+        if (!supportsRange) {
+            // Сервер не поддерживает частичные загрузки, переходим к обычной загрузке
+            gLogger->warning("Server does not support range requests, using single-threaded download");
+            downloadResource(url, destPath);
+            return;
+        }
+        
+        // Очищаем предыдущие сегменты, если они есть
+        for (auto segment : m_segments) {
+            if (segment->reply) {
+                segment->reply->abort();
+                segment->reply->deleteLater();
+            }
+            if (segment->tempFile) {
+                segment->tempFile->close();
+                delete segment->tempFile;
+            }
+            delete segment;
+        }
+        m_segments.clear();
+        m_completedSegments = 0;
+        
+        // Вычисляем размер каждого сегмента
+        qint64 segmentSize = fileSize / segmentCount;
+        
+        // Создаем и инициализируем структуры для каждого сегмента
+        for (int i = 0; i < segmentCount; ++i) {
+            DownloadSegment* segment = new DownloadSegment();
+            segment->index = i;
+            segment->startByte = i * segmentSize;
+            segment->endByte = (i == segmentCount - 1) ? fileSize - 1 : ((i + 1) * segmentSize - 1);
+            segment->bytesReceived = 0;
+            segment->bytesTotal = segment->endByte - segment->startByte + 1;
+            segment->completed = false;
+            segment->reply = nullptr;
+            
+            // Создаем временный файл для сегмента
+            QString tempFileName = destPath + QString(".part%1").arg(i);
+            segment->tempFile = new QTemporaryFile(tempFileName);
+            segment->tempFile->open();
+            
+            m_segments.append(segment);
+        }
+        
+        // Запускаем загрузку всех сегментов
+        for (auto segment : m_segments) {
+            downloadSegment(url, destPath, segment->index, segment->startByte, segment->endByte);
+        }
+        
+        // Отображаем информацию о многопоточной загрузке
+        m_downloadStatusLabel->setText(tr("Многопоточная загрузка: %1 сегментов").arg(segmentCount));
+    });
+}
+
+void SettingsDialog::downloadSegment(const QString& url, const QString& destPath, int segmentIndex, qint64 startByte, qint64 endByte)
+{
+    // Находим соответствующий сегмент
+    if (segmentIndex >= m_segments.size()) {
+        return;
+    }
+    
+    DownloadSegment* segment = m_segments[segmentIndex];
+    
+    // Создаем запрос с Range header
+    QNetworkRequest request;
+    request.setUrl(QUrl(url));
+    
+    // Устанавливаем Range header
+    QString rangeHeader = QString("bytes=%1-%2").arg(startByte).arg(endByte);
+    request.setRawHeader("Range", rangeHeader.toUtf8());
+    
+    // Запускаем загрузку сегмента
+    segment->reply = m_networkManager->get(request);
+    
+    // Сохраняем информацию о пути и индексе сегмента
+    segment->reply->setProperty("segmentIndex", segmentIndex);
+    segment->reply->setProperty("destinationPath", destPath);
+    
+    // Подключаем сигналы
+    connect(segment->reply, &QNetworkReply::downloadProgress, 
+            [this, segmentIndex](qint64 bytesReceived, qint64 bytesTotal) {
+        
+        QMutexLocker locker(&m_segmentsMutex);
+        
+        if (segmentIndex >= m_segments.size()) {
+            return;
+        }
+        
+        // Обновляем прогресс сегмента
+        DownloadSegment* segment = m_segments[segmentIndex];
+        segment->bytesReceived = bytesReceived;
+        
+        // Вычисляем общий прогресс всех сегментов
+        qint64 totalReceived = 0;
+        qint64 totalSize = 0;
+        
+        for (auto s : m_segments) {
+            totalReceived += s->bytesReceived;
+            totalSize += s->bytesTotal;
+        }
+        
+        // Обновляем прогресс-бар
+        if (totalSize > 0) {
+            int percent = static_cast<int>((totalReceived * 100) / totalSize);
+            m_downloadProgressBar->setValue(percent);
+            
+            // Рассчитываем скорость загрузки
+            double elapsedSecs = m_downloadTimer.elapsed() / 1000.0;
+            double speed = 0.0;
+            if (elapsedSecs > 0) {
+                speed = totalReceived / elapsedSecs / 1024.0; // KB/s
+            }
+            
+            m_downloadStatusLabel->setText(tr("Многопоточная загрузка: %1 / %2 МБ (%3%) - %4 КБ/с - Сегменты: %5/%6")
+                .arg(totalReceived / 1024.0 / 1024.0, 0, 'f', 1)
+                .arg(totalSize / 1024.0 / 1024.0, 0, 'f', 1)
+                .arg(percent)
+                .arg(speed, 0, 'f', 1)
+                .arg(m_completedSegments)
+                .arg(m_segments.size()));
+        }
+    });
+    
+    connect(segment->reply, &QNetworkReply::finished, this, &SettingsDialog::onSegmentDownloadFinished);
+}
+
+void SettingsDialog::onSegmentDownloadFinished()
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    if (!reply) {
+        return;
+    }
+    
+    // Получаем индекс сегмента и путь назначения
+    int segmentIndex = reply->property("segmentIndex").toInt();
+    QString destPath = reply->property("destinationPath").toString();
+    
+    QMutexLocker locker(&m_segmentsMutex);
+    
+    if (segmentIndex >= m_segments.size()) {
+        reply->deleteLater();
+        return;
+    }
+    
+    DownloadSegment* segment = m_segments[segmentIndex];
+    
+    if (reply->error() == QNetworkReply::NoError) {
+        // Записываем полученные данные во временный файл
+        segment->tempFile->write(reply->readAll());
+        segment->tempFile->flush();
+        
+        // Помечаем сегмент как завершенный
+        segment->completed = true;
+        m_completedSegments++;
+        
+        // Если все сегменты загружены, объединяем их
+        if (m_completedSegments == m_segments.size()) {
+            combineSegments(destPath, m_segments.size());
+        }
+    } 
+    else {
+        // Ошибка загрузки сегмента
+        gLogger->error("Segment " + std::to_string(segmentIndex) + " download failed: " + 
+                     reply->errorString().toStdString());
+                     
+        // Пробуем перезапустить загрузку сегмента
+        downloadSegment(reply->url().toString(), destPath, segmentIndex, 
+                      segment->startByte, segment->endByte);
+    }
+    
+    reply->deleteLater();
+    segment->reply = nullptr;
+}
+
+void SettingsDialog::combineSegments(const QString& destPath, int segmentCount)
+{
+    // Создаем итоговый файл
+    QFile destFile(destPath);
+    if (!destFile.open(QIODevice::WriteOnly)) {
+        gLogger->error("Failed to open destination file: " + destPath.toStdString());
+        m_downloadStatusLabel->setText(tr("Ошибка: не удалось открыть файл назначения"));
+        
+        // Сбрасываем состояние загрузки
+        m_isDownloading = false;
+        updateDownloadControls(false);
+        return;
+    }
+    
+    // Объединяем все сегменты
+    for (int i = 0; i < segmentCount; ++i) {
+        if (i >= m_segments.size()) {
+            break;
+        }
+        
+        DownloadSegment* segment = m_segments[i];
+        segment->tempFile->seek(0);
+        
+        // Копируем содержимое временного файла в итоговый
+        while (!segment->tempFile->atEnd()) {
+            QByteArray buffer = segment->tempFile->read(1024 * 1024); // 1MB chunks
+            destFile.write(buffer);
+        }
+    }
+    
+    destFile.close();
+    
+    // Очищаем временные файлы и сегменты
+    for (auto segment : m_segments) {
+        if (segment->reply) {
+            segment->reply->abort();
+            segment->reply->deleteLater();
+        }
+        if (segment->tempFile) {
+            segment->tempFile->close();
+            delete segment->tempFile;
+        }
+        delete segment;
+    }
+    m_segments.clear();
+    m_completedSegments = 0;
+    
+    // Обновляем UI
+    m_downloadStatusLabel->setText(tr("Загрузка завершена"));
+    m_downloadProgressBar->setValue(100);
+    
+    // Обновляем статус ресурса в списке
+    QList<QTreeWidgetItem*> selectedItems = m_resourcesTreeWidget->selectedItems();
+    if (!selectedItems.isEmpty()) {
+        selectedItems.first()->setText(4, tr("Установлен"));
+    }
+    
+    // Сбрасываем состояние загрузки
+    m_isDownloading = false;
+    updateDownloadControls(false);
+    
+    // Обновляем список ресурсов
+    QString languageFilter = m_resourceLanguageComboBox->currentData().toString();
+    if (languageFilter == "all") {
+        languageFilter = QString();
+    }
+    populateResourcesList(languageFilter, m_resourceSearchEdit->text());
+}
+
+void SettingsDialog::onProxyTypeChanged(int index)
+{
+    setupProxy();
+}
+
+void SettingsDialog::setupProxy()
+{
+    if (!m_useProxyCheckBox->isChecked()) {
+        return;
+    }
+    
+    // Получаем тип прокси
+    QNetworkProxy::ProxyType proxyType = static_cast<QNetworkProxy::ProxyType>(
+        m_proxyTypeComboBox->currentData().toInt());
+    
+    // Настраиваем прокси
+    m_networkProxy.setType(proxyType);
+    
+    if (proxyType != QNetworkProxy::DefaultProxy) {
+        m_networkProxy.setHostName(m_proxyHostEdit->text());
+        m_networkProxy.setPort(m_proxyPortSpinBox->value());
+        
+        // Устанавливаем аутентификацию, если указаны имя пользователя и пароль
+        if (!m_proxyUserEdit->text().isEmpty()) {
+            m_networkProxy.setUser(m_proxyUserEdit->text());
+        }
+        if (!m_proxyPasswordEdit->text().isEmpty()) {
+            m_networkProxy.setPassword(m_proxyPasswordEdit->text());
+        }
+    }
+    
+    // Применяем прокси к сетевому менеджеру
+    m_networkManager->setProxy(m_networkProxy);
+    
+    gLogger->info("Proxy configured: " + m_proxyHostEdit->text().toStdString() + ":" 
+                 + std::to_string(m_proxyPortSpinBox->value()));
+}
+
+void SettingsDialog::updateDownloadControls(bool isDownloading, bool isPaused)
+{
+    m_isDownloading = isDownloading;
+    m_isPaused = isPaused;
+    
+    // Обновляем состояние кнопок
+    m_downloadButton->setEnabled(!isDownloading && !m_resourcesTreeWidget->selectedItems().isEmpty());
+    m_pauseResumeButton->setEnabled(isDownloading);
+    m_cancelDownloadButton->setEnabled(isDownloading);
+    
+    // Обновляем текст кнопки паузы/возобновления
+    m_pauseResumeButton->setText(isPaused ? tr("Продолжить") : tr("Пауза"));
+    
+    // Показываем/скрываем прогресс загрузки
+    m_downloadProgressBar->setVisible(isDownloading);
+    m_downloadStatusLabel->setVisible(isDownloading);
+    
+    // Сбрасываем прогресс, если загрузка не активна
+    if (!isDownloading) {
+        m_downloadProgressBar->setValue(0);
+    }
+}
+
+void SettingsDialog::downloadResource(const QString& resourceUrl, const QString& destPath)
+{
+    // Прерываем текущую загрузку, если она есть
+    if (m_currentDownload) {
+        m_currentDownload->abort();
+        m_currentDownload->deleteLater();
+        m_currentDownload = nullptr;
+    }
+    
+    // Создаем запрос
+    QNetworkRequest request;
+    request.setUrl(QUrl(resourceUrl));
+    
+    // Начинаем загрузку
+    m_currentDownload = m_networkManager->get(request);
+    m_currentDownload->setProperty("destinationPath", destPath);
+    
+    // Подключаем сигналы
+    connect(m_currentDownload, &QNetworkReply::downloadProgress, 
+            this, &SettingsDialog::onDownloadProgress);
+    connect(m_currentDownload, &QNetworkReply::finished, 
+            this, &SettingsDialog::onDownloadFinished);
+}
+
+bool SettingsDialog::isResourceInstalled(const QString& resourceId)
+{
+    // Определяем пути и имена файлов для разных типов ресурсов
+    QString appDir = QCoreApplication::applicationDirPath();
+    
+    // Структура данных: {ид_ресурса -> {путь, имя_файла}}
+    QMap<QString, QPair<QString, QString>> resourcePaths = {
+        // Модели Whisper
+        {"whisper-tiny-en", {appDir + "/models/", "ggml-tiny.en.bin"}},
+        {"whisper-base-en", {appDir + "/models/", "ggml-base.en.bin"}},
+        {"whisper-small-en", {appDir + "/models/", "ggml-small.en.bin"}},
+        {"whisper-tiny-ru", {appDir + "/models/", "ru_ggml-tiny.bin"}},
+        {"whisper-base-ru", {appDir + "/models/", "ru_ggml-base.bin"}},
+        
+        // Модели DeepSpeech
+        {"deepspeech-en", {appDir + "/models/", "deepspeech-0.9.3-models.pbmm"}},
+        {"deepspeech-ru", {appDir + "/models/", "ru_deepspeech-0.9.3-models-ru.pbmm"}},
+        
+        // Словари
+        {"dictionary-en", {appDir + "/dictionaries/", "en_words_alpha.txt"}},
+        {"dictionary-ru", {appDir + "/dictionaries/", "ru_russian.txt"}},
+        
+        // Библиотеки
+        {"deepspeech-lib-win-x64", {appDir + "/lib/", "libdeepspeech.dll"}},
+        {"deepspeech-lib-linux-x64", {appDir + "/lib/", "libdeepspeech.so"}}
+    };
+    
+    // Проверяем существование файла
+    if (resourcePaths.contains(resourceId)) {
+        const auto& pathInfo = resourcePaths[resourceId];
+        QString fullPath = pathInfo.first + pathInfo.second;
+        return QFile::exists(fullPath);
+    }
+    
+    return false;
 }
 
 void SettingsDialog::populateResourcesList(const QString& languageFilter, const QString& searchText)
@@ -980,66 +1544,97 @@ void SettingsDialog::populateResourcesList(const QString& languageFilter, const 
     }
     
     // Обновляем состояние кнопки загрузки
-    m_downloadButton->setEnabled(!m_resourcesTreeWidget->selectedItems().isEmpty());
+    m_downloadButton->setEnabled(!m_resourcesTreeWidget->selectedItems().isEmpty() && !m_isDownloading);
 }
 
-void SettingsDialog::downloadResource(const QString& resourceUrl, const QString& destPath)
+void SettingsDialog::onPauseResumeButtonClicked()
 {
-    // Прерываем текущую загрузку, если она есть
+    if (!m_isDownloading || !m_currentDownload) {
+        return;
+    }
+    
+    if (m_isPaused) {
+        // Возобновляем загрузку
+        m_isPaused = false;
+        m_pauseResumeButton->setText(tr("Пауза"));
+        m_downloadStatusLabel->setText(tr("Возобновление загрузки..."));
+        
+        // Создаем новый запрос с Range header для продолжения с позиции
+        QNetworkRequest request;
+        request.setUrl(QUrl(m_currentResourceUrl));
+        
+        // Устанавливаем Range header для продолжения с текущей позиции
+        request.setRawHeader("Range", QString("bytes=%1-").arg(m_resumePosition).toUtf8());
+        
+        // Прерываем текущую загрузку
+        if (m_currentDownload) {
+            m_currentDownload->abort();
+            m_currentDownload->deleteLater();
+        }
+        
+        // Начинаем новую загрузку с указанной позиции
+        m_currentDownload = m_networkManager->get(request);
+        m_currentDownload->setProperty("destinationPath", m_currentDestPath);
+        
+        // Подключаем сигналы
+        connect(m_currentDownload, &QNetworkReply::downloadProgress, 
+                this, &SettingsDialog::onDownloadProgress);
+        connect(m_currentDownload, &QNetworkReply::finished, 
+                this, &SettingsDialog::onDownloadFinished);
+                
+        // Перезапускаем таймер
+        m_downloadTimer.start();
+    } 
+    else {
+        // Приостанавливаем загрузку
+        m_isPaused = true;
+        m_pauseResumeButton->setText(tr("Продолжить"));
+        m_downloadStatusLabel->setText(tr("Загрузка приостановлена"));
+        
+        // Сохраняем текущую позицию для последующего возобновления
+        m_resumePosition += m_currentDownload->bytesAvailable();
+        
+        // Приостанавливаем текущую загрузку
+        if (m_currentDownload) {
+            m_currentDownload->abort();
+        }
+    }
+}
+
+void SettingsDialog::onCancelButtonClicked()
+{
+    if (!m_isDownloading) {
+        return;
+    }
+    
+    // Прерываем текущую загрузку
     if (m_currentDownload) {
         m_currentDownload->abort();
         m_currentDownload->deleteLater();
         m_currentDownload = nullptr;
     }
     
-    // Создаем запрос
-    QNetworkRequest request;
-    request.setUrl(QUrl(resourceUrl));
-    
-    // Начинаем загрузку
-    m_currentDownload = m_networkManager->get(request);
-    m_currentDownload->setProperty("destinationPath", destPath);
-    
-    // Подключаем сигналы
-    connect(m_currentDownload, &QNetworkReply::downloadProgress, 
-            this, &SettingsDialog::onDownloadProgress);
-    connect(m_currentDownload, &QNetworkReply::finished, 
-            this, &SettingsDialog::onDownloadFinished);
-}
-
-bool SettingsDialog::isResourceInstalled(const QString& resourceId)
-{
-    // Определяем пути и имена файлов для разных типов ресурсов
-    QString appDir = QCoreApplication::applicationDirPath();
-    
-    // Структура данных: {ид_ресурса -> {путь, имя_файла}}
-    QMap<QString, QPair<QString, QString>> resourcePaths = {
-        // Модели Whisper
-        {"whisper-tiny-en", {appDir + "/models/", "ggml-tiny.en.bin"}},
-        {"whisper-base-en", {appDir + "/models/", "ggml-base.en.bin"}},
-        {"whisper-small-en", {appDir + "/models/", "ggml-small.en.bin"}},
-        {"whisper-tiny-ru", {appDir + "/models/", "ru_ggml-tiny.bin"}},
-        {"whisper-base-ru", {appDir + "/models/", "ru_ggml-base.bin"}},
-        
-        // Модели DeepSpeech
-        {"deepspeech-en", {appDir + "/models/", "deepspeech-0.9.3-models.pbmm"}},
-        {"deepspeech-ru", {appDir + "/models/", "ru_deepspeech-0.9.3-models-ru.pbmm"}},
-        
-        // Словари
-        {"dictionary-en", {appDir + "/dictionaries/", "en_words_alpha.txt"}},
-        {"dictionary-ru", {appDir + "/dictionaries/", "ru_russian.txt"}},
-        
-        // Библиотеки
-        {"deepspeech-lib-win-x64", {appDir + "/lib/", "libdeepspeech.dll"}},
-        {"deepspeech-lib-linux-x64", {appDir + "/lib/", "libdeepspeech.so"}}
-    };
-    
-    // Проверяем существование файла
-    if (resourcePaths.contains(resourceId)) {
-        const auto& pathInfo = resourcePaths[resourceId];
-        QString fullPath = pathInfo.first + pathInfo.second;
-        return QFile::exists(fullPath);
+    // Очищаем сегменты многопоточной загрузки
+    for (auto segment : m_segments) {
+        if (segment->reply) {
+            segment->reply->abort();
+            segment->reply->deleteLater();
+        }
+        if (segment->tempFile) {
+            segment->tempFile->close();
+            delete segment->tempFile;
+        }
+        delete segment;
     }
+    m_segments.clear();
+    m_completedSegments = 0;
     
-    return false;
+    // Сбрасываем состояние загрузки
+    m_isDownloading = false;
+    m_isPaused = false;
+    m_resumePosition = 0;
+    m_downloadStatusLabel->setText(tr("Загрузка отменена"));
+    
+    // Обновляем UI
+    updateDownloadControls(false);
 } 
