@@ -46,7 +46,7 @@ VersionData Version::forceUpdateVersion() {
             m_currentVersion = loadVersionFromCache();
         } catch (const std::exception& e) {
             // Set default values if all else fails
-            m_currentVersion.displayVersion = "3.1.1";
+            m_currentVersion.displayVersion = "3.5.0";
             m_currentVersion.buildNumber = "1";
             m_currentVersion.commitHash = "unknown";
             m_currentVersion.buildDate = "unknown";
@@ -63,7 +63,7 @@ std::string Version::getRuntimeVersion() {
         Version v;
         version = v.getVersion();
     } catch (const std::exception& e) {
-        return "3.1.1";
+        return "3.5.0";
     }
     return version.displayVersion;
 }
@@ -87,7 +87,7 @@ std::map<std::string, std::string> Version::getRuntimeAppInfo() {
         }
         
     } catch (const std::exception& e) {
-        info["version"] = "3.1.1";
+        info["version"] = "3.5.0";
         info["build"] = "1";
         info["error"] = e.what();
     }
@@ -110,7 +110,7 @@ VersionData Version::loadVersionFromCache() const {
     json j;
     file >> j;
     
-    version.displayVersion = j.value("display_version", "3.1.1");
+    version.displayVersion = j.value("display_version", "3.5.0");
     version.buildNumber = j.value("build_number", "1");
     version.commitHash = j.value("commit_hash", "unknown");
     version.buildDate = j.value("build_date", "unknown");
@@ -159,7 +159,7 @@ VersionData Version::getVersionFromGit() const {
         // Try to get the latest git tag
         std::string gitTag = executeCommand("git describe --tags --abbrev=0 2>/dev/null");
         if (gitTag.empty()) {
-            gitTag = "v3.1.1";
+            gitTag = "v3.5.0";
         }
         
         // Remove 'v' prefix if present
