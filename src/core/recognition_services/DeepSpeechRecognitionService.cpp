@@ -2,12 +2,31 @@
 #include "../../utils/Logger.h"
 
 #include <QDir>
+#include <QFile>
 #include <QStandardPaths>
 #include <QCoreApplication>
+#include <cmath>
 
 // Условная компиляция - если определен HAVE_DEEPSPEECH, используем реальный DeepSpeech API
 #ifdef HAVE_DEEPSPEECH
 #include <deepspeech.h>
+#endif
+
+// Определение деструкторов для умных указателей
+#ifdef HAVE_DEEPSPEECH
+namespace {
+    void ModelDeleter(ModelState* model) {
+        if (model) {
+            DS_FreeModel(model);
+        }
+    }
+    
+    void StreamDeleter(StreamingState* stream) {
+        if (stream) {
+            DS_FreeStream(stream);
+        }
+    }
+}
 #endif
 
 // Внешний глобальный логгер
@@ -15,7 +34,15 @@ extern Logger* gLogger;
 
 DeepSpeechRecognitionService::DeepSpeechRecognitionService(QObject* parent)
     : RecognitionService(parent)
+#ifdef HAVE_DEEPSPEECH
+    , m_model(nullptr, ModelDeleter)
+    , m_streamingState(nullptr, StreamDeleter)
+#else
+    , m_model(nullptr)
+    , m_streamingState(nullptr)
+#endif
     , m_isInitialized(false)
+    , m_isReady(false)
     , m_sampleRate(16000)
     , m_channels(1)
     , m_language("en-US")
@@ -76,7 +103,12 @@ QString DeepSpeechRecognitionService::transcribe(const std::vector<float>& audio
 
     try {
         // Создаем потоковое состояние
-        m_streamingState.reset(DS_CreateStream(m_model.get()));
+        StreamingState* stream = DS_CreateStream(m_model.get());
+        if (!stream) {
+            gLogger->error("Failed to create DeepSpeech stream");
+            return QString();
+        }
+        m_streamingState.reset(stream);
         
         // Обрабатываем аудиоданные
         if (!processSpeech(audioData)) {
@@ -101,6 +133,9 @@ QString DeepSpeechRecognitionService::transcribe(const std::vector<float>& audio
                 return QString();
             }
         }
+        
+        // Сбрасываем поток, он больше не нужен
+        m_streamingState.reset();
         
         // Возвращаем результат
         return QString::fromStdString(text);
@@ -133,8 +168,9 @@ bool DeepSpeechRecognitionService::processSpeech(const std::vector<float>& audio
         // Преобразуем float в int16 (формат, который ожидает DeepSpeech)
         std::vector<int16_t> buffer(audioData.size());
         for (size_t i = 0; i < audioData.size(); ++i) {
-            // Нормализация float [-1.0, 1.0] в int16_t [-32768, 32767]
-            buffer[i] = static_cast<int16_t>(audioData[i] * 32767.0f);
+            // Безопасная нормализация float [-1.0, 1.0] в int16_t [-32767, 32767]
+            float sample = std::max(-1.0f, std::min(1.0f, audioData[i]));
+            buffer[i] = static_cast<int16_t>(sample * 32767.0f);
         }
 
         // Обработка аудиоданных
@@ -196,9 +232,9 @@ bool DeepSpeechRecognitionService::loadModel()
         gLogger->info("Loading DeepSpeech model from: " + modelPath);
         
         // Создаем модель
-        ModelState* model;
+        ModelState* model = nullptr;
         int result = DS_CreateModel(modelPath.c_str(), &model);
-        if (result != 0) {
+        if (result != 0 || !model) {
             gLogger->error("Failed to create DeepSpeech model: error code " + std::to_string(result));
             return false;
         }

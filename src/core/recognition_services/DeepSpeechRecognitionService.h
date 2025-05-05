@@ -8,6 +8,11 @@
 // Условная компиляция для DeepSpeech
 #ifdef HAVE_DEEPSPEECH
 #include <deepspeech.h>
+// При реальной работе с DeepSpeech эти определения не нужны
+#else
+// Для компиляции без DeepSpeech определяем необходимые типы
+struct ModelState;
+struct StreamingState;
 #endif
 
 // Forward declarations
@@ -36,15 +41,16 @@ private:
 
 private:
 #ifdef HAVE_DEEPSPEECH
-    std::unique_ptr<DeepSpeech::Model> m_model;
-    std::unique_ptr<DeepSpeech::StreamingState> m_streamingState;
+    std::unique_ptr<ModelState, void(*)(ModelState*)> m_model;
+    std::unique_ptr<StreamingState, void(*)(StreamingState*)> m_streamingState;
 #else
     // Заглушки для компиляции без DeepSpeech
-    void* m_model = nullptr;
-    void* m_streamingState = nullptr;
+    void* m_model;
+    void* m_streamingState;
 #endif
     QString m_language;
     bool m_isInitialized;
+    bool m_isReady;
     int m_sampleRate;
     int m_channels;
 }; 
