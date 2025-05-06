@@ -17,6 +17,7 @@ WhisperRecognitionService::WhisperRecognitionService(QObject* parent)
     , m_whisperContext(nullptr)
     , m_modelPath("")
     , m_modelSize("base")
+    , m_noSpeechThreshold(0.6f)
 {
     // Model will be loaded during initialization
 }
@@ -40,6 +41,7 @@ bool WhisperRecognitionService::initialize(const QString& apiKey, bool useShared
     
     QSettings settings;
     m_modelSize = settings.value("recognition/model_size", "base").toString();
+    m_noSpeechThreshold = settings.value("recognition/no_speech_threshold", 0.6f).toFloat();
     
     // Load the language model
     bool result = loadLanguageModel();
@@ -106,6 +108,7 @@ QString WhisperRecognitionService::transcribe(const std::vector<float>& audioDat
         wparams.single_segment   = false;
         wparams.max_tokens       = 0;
         wparams.speed_up         = true;
+        wparams.no_speech_thold  = m_noSpeechThreshold;
         
         // Perform recognition
         if (whisper_full(m_whisperContext, wparams, samples, sampleCount) != 0) {
@@ -121,7 +124,10 @@ QString WhisperRecognitionService::transcribe(const std::vector<float>& audioDat
         QString result;
         for (int i = 0; i < numSegments; ++i) {
             const char* text = whisper_full_get_segment_text(m_whisperContext, i);
-            result += QString::fromUtf8(text);
+            
+            if (whisper_full_get_segment_no_speech_prob(m_whisperContext, i) < m_noSpeechThreshold) {
+                result += QString::fromUtf8(text);
+            }
         }
         
         return result;
@@ -206,4 +212,19 @@ QString WhisperRecognitionService::getModelPath() const
     }
     
     return modelPath;
+}
+
+void WhisperRecognitionService::setNoSpeechThreshold(float threshold)
+{
+    if (threshold >= 0.0f && threshold <= 1.0f) {
+        m_noSpeechThreshold = threshold;
+        
+        QSettings settings;
+        settings.setValue("recognition/no_speech_threshold", m_noSpeechThreshold);
+    }
+}
+
+float WhisperRecognitionService::getNoSpeechThreshold() const
+{
+    return m_noSpeechThreshold;
 } 

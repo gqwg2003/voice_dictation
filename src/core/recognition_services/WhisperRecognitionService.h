@@ -25,6 +25,18 @@ public:
     QString transcribe(const std::vector<float>& audioData) override;
     bool isReady() const override;
 
+    /**
+     * @brief Set threshold for no_speech detection (added in whisper.cpp 1.7.3+)
+     * @param threshold Value between 0.0 and 1.0
+     */
+    void setNoSpeechThreshold(float threshold);
+    
+    /**
+     * @brief Get current no_speech threshold
+     * @return Current threshold value
+     */
+    float getNoSpeechThreshold() const;
+
 private:
     /**
      * @brief Load the language model for offline recognition
@@ -46,4 +58,5 @@ private:
 #endif
     QString m_modelPath;
     QString m_modelSize;
+    float m_noSpeechThreshold; // Порог для определения тишины
 }; 

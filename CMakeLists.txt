@@ -8,12 +8,21 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 # Find required packages
-find_package(Qt6 COMPONENTS Core Widgets Multimedia Network REQUIRED)
+# Требуем Qt 6.10.0 для устранения уязвимостей
+find_package(Qt6 6.10.0 COMPONENTS Core Widgets Multimedia Network REQUIRED)
 
-# Always download nlohmann_json
+# Проверяем версию Qt для уверенности
+if(Qt6_VERSION VERSION_LESS 6.10.0)
+    message(FATAL_ERROR "Qt 6.10.0 или выше требуется для устранения уязвимостей безопасности. Найдена версия: ${Qt6_VERSION}")
+endif()
+
+# Используем последнюю версию nlohmann_json для исправления уязвимостей
 include(FetchContent)
-FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
 FetchContent_MakeAvailable(json)
+
+# Версия whisper.cpp v1.7.5
+set(WHISPER_VERSION "1.7.5")
 
 # Try to find Whisper library
 option(USE_WHISPER "Use Whisper library for speech recognition" ON)
