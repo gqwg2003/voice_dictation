@@ -1198,7 +1198,10 @@ void SettingsDialog::startSegmentedDownload(const QString& url, const QString& d
             // Создаем временный файл для сегмента
             QString tempFileName = destPath + QString(".part%1").arg(i);
             segment->tempFile = new QTemporaryFile(tempFileName);
-            segment->tempFile->open();
+            bool opened = segment->tempFile->open();
+            if (!opened) {
+                gLogger->error("Failed to open temporary file for segment: " + tempFileName.toStdString());
+            }
             
             m_segments.append(segment);
         }

@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
         QApplication app(argc, argv);
         
         // Set application icon for all windows
-        // app.setWindowIcon(QIcon(":/Icon/app.ico"));
+        app.setWindowIcon(QIcon(":/app.ico"));
         
         app.setApplicationName("Voice Dictation");
         app.setApplicationVersion(QString::fromStdString(versionData.displayVersion));

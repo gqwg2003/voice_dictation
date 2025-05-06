@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <sstream>
 #include <filesystem>
+#include <limits>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -44,7 +45,7 @@ VersionData Version::forceUpdateVersion() {
         // Try to load from cache as fallback
         try {
             m_currentVersion = loadVersionFromCache();
-        } catch (const std::exception& e) {
+        } catch (const std::exception&) {
             // Set default values if all else fails
             m_currentVersion.displayVersion = "3.5.0";
             m_currentVersion.buildNumber = "1";
@@ -62,7 +63,7 @@ std::string Version::getRuntimeVersion() {
     try {
         Version v;
         version = v.getVersion();
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
         return "3.5.0";
     }
     return version.displayVersion;
@@ -189,11 +190,22 @@ VersionData Version::getVersionFromGit() const {
         auto in_time_t = std::chrono::system_clock::to_time_t(now);
         
         std::stringstream dateStream;
-        dateStream << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d");
+#ifdef _WIN32
+        struct tm timeinfo;
+        localtime_s(&timeinfo, &in_time_t);
+        dateStream << std::put_time(&timeinfo, "%Y-%m-%d");
+#else
+        struct tm* timeinfo = localtime(&in_time_t);
+        dateStream << std::put_time(timeinfo, "%Y-%m-%d");
+#endif
         version.buildDate = dateStream.str();
         
         std::stringstream timeStream;
-        timeStream << std::put_time(std::localtime(&in_time_t), "%H:%M:%S");
+#ifdef _WIN32
+        timeStream << std::put_time(&timeinfo, "%H:%M:%S");
+#else
+        timeStream << std::put_time(timeinfo, "%H:%M:%S");
+#endif
         version.buildTime = timeStream.str();
         
         // Set default features
@@ -224,7 +236,7 @@ std::string Version::executeCommand(const std::string& command) const {
         throw std::runtime_error("Failed to execute command: " + command);
     }
     
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+    while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) != nullptr) {
         result += buffer.data();
     }
     

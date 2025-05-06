@@ -30,22 +30,22 @@ public:
         }
         
         // Extract modifiers and key from the sequence
-        int qtKey = keySequence[0];
+        QKeyCombination keyCombination = keySequence[0];
         
-        if (qtKey & Qt::ControlModifier) {
+        if (keyCombination.keyboardModifiers() & Qt::ControlModifier) {
             modifiers |= Qt::ControlModifier;
         }
-        if (qtKey & Qt::AltModifier) {
+        if (keyCombination.keyboardModifiers() & Qt::AltModifier) {
             modifiers |= Qt::AltModifier;
         }
-        if (qtKey & Qt::ShiftModifier) {
+        if (keyCombination.keyboardModifiers() & Qt::ShiftModifier) {
             modifiers |= Qt::ShiftModifier;
         }
-        if (qtKey & Qt::MetaModifier) {
+        if (keyCombination.keyboardModifiers() & Qt::MetaModifier) {
             modifiers |= Qt::MetaModifier;
         }
         
-        keyCode = qtKey & ~(Qt::ControlModifier | Qt::AltModifier | Qt::ShiftModifier | Qt::MetaModifier);
+        keyCode = keyCombination.key();
         
         // Convert Qt key code to Windows virtual key code
         int vk = qtKeyToVirtualKey(keyCode);

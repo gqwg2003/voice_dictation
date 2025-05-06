@@ -26,7 +26,7 @@ extern Logger* gLogger;
 
 // Определение статических констант
 const QString MainWindow::ICON_PATH_PREFIX = ":/icons/";
-const QString MainWindow::APP_ICON_PATH = ":/icons/app.png";
+const QString MainWindow::APP_ICON_PATH = ":/app.ico";
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),

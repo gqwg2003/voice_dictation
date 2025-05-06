@@ -6,6 +6,7 @@
         <file>icons/copy.png</file>
         <file>icons/clear.png</file>
         <file>icons/settings.png</file>
+        <file>app.ico</file>
         <!-- Закомментировано, пока не созданы файлы переводов
         <file>translations/voicedictation_ru.qm</file>
         <file>translations/voicedictation_en.qm</file>
