@@ -1,0 +1,33 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoiceDictation.Core", "src\VoiceDictation.Core\VoiceDictation.Core.csproj", "{7F1C3E18-47C0-4C58-9A6D-F8F220C8488A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoiceDictation.UI", "src\VoiceDictation.UI\VoiceDictation.UI.csproj", "{D1C21AC5-A5F4-4E49-8A9C-8D3D53085F0B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoiceDictation.Network", "src\VoiceDictation.Network\VoiceDictation.Network.csproj", "{952A6075-D7B5-4D8E-83FB-17E05D33683A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7F1C3E18-47C0-4C58-9A6D-F8F220C8488A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F1C3E18-47C0-4C58-9A6D-F8F220C8488A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F1C3E18-47C0-4C58-9A6D-F8F220C8488A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F1C3E18-47C0-4C58-9A6D-F8F220C8488A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1C21AC5-A5F4-4E49-8A9C-8D3D53085F0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1C21AC5-A5F4-4E49-8A9C-8D3D53085F0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1C21AC5-A5F4-4E49-8A9C-8D3D53085F0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1C21AC5-A5F4-4E49-8A9C-8D3D53085F0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{952A6075-D7B5-4D8E-83FB-17E05D33683A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{952A6075-D7B5-4D8E-83FB-17E05D33683A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{952A6075-D7B5-4D8E-83FB-17E05D33683A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{952A6075-D7B5-4D8E-83FB-17E05D33683A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal 

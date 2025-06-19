@@ -1,0 +1,146 @@
+# .NET build output
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+*.vshost.*
+.vs/
+
+# Python related
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environment
+venv/
+.env
+env/
+ENV/
+
+# IDE specific files
+.idea/
+.vscode/
+*.sln.iml
+*.pyproj.user
+*.csproj.user
+.DS_Store
+*.sublime-workspace
+*.sublime-project
+*.code-workspace
+*.vsconfig
+
+# Log files
+logs/
+*.log
+npm-debug.log*
+*.tlog
+
+# Local configuration
+*.local.json
+local.settings.json
+appsettings.*.json
+secrets.json
+
+# Cache files
+.cache/
+.sass-cache/
+.nuget/
+packages/
+*.nupkg
+*.cache
+*.coverage
+coverage/
+
+# Miscellaneous
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.swp
+*.bak
+*.tmp
+*.pid
+*.pid.lock
+*.orig
+*.rej
+*.gz
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.rar
+*.dmp
+*.mdmp
+*.pdb
+*.suo
+*.ncb
+*.opendb
+*.VC.db
+*.VC.VC.opendb
+*.dbmdl
+*.db
+*.sqlite
+*.sqlite3
+*.sdf
+*.mdb
+*.ldf
+*.log.ldf
+*.vscode-test
+
+# Test results
+TestResults/
+*.trx
+*.testsettings
+*.vsmdi
+*.psess
+*.vsp
+*.vspx
+*.sap
+*.coverage
+*.coveragexml
+
+# Publish results
+publish/
+*.publishsettings
+
+# Pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Jupyter
+.ipynb_checkpoints
+
+# macOS
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~ 
