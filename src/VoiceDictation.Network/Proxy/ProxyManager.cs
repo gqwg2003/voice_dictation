@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 
 namespace VoiceDictation.Network.Proxy
 {
@@ -377,7 +378,46 @@ namespace VoiceDictation.Network.Proxy
         {
             try
             {
-                return null;
+                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                    @"Software\Microsoft\Windows\CurrentVersion\Internet Settings", false);
+                
+                if (key == null)
+                {
+                    return null;
+                }
+                
+                var proxyEnable = key.GetValue("ProxyEnable");
+                if (proxyEnable == null || (int)proxyEnable != 1)
+                {
+                    return null;
+                }
+                
+                var proxyServer = key.GetValue("ProxyServer") as string;
+                if (string.IsNullOrEmpty(proxyServer))
+                {
+                    return null;
+                }
+                
+                if (proxyServer.Contains("="))
+                {
+                    foreach (var part in proxyServer.Split(';'))
+                    {
+                        if (part.StartsWith("http=", StringComparison.OrdinalIgnoreCase))
+                        {
+                            return part.Substring(5);
+                        }
+                    }
+                    
+                    var firstProxy = proxyServer.Split(';')[0];
+                    if (firstProxy.Contains("="))
+                    {
+                        return firstProxy.Split('=')[1];
+                    }
+                    
+                    return null;
+                }
+                
+                return proxyServer;
             }
             catch (Exception ex)
             {
@@ -392,6 +432,39 @@ namespace VoiceDictation.Network.Proxy
         /// <param name="proxy">Proxy configuration</param>
         private void SetSystemProxyWindows(ProxyConfig proxy)
         {
+            try
+            {
+                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                    @"Software\Microsoft\Windows\CurrentVersion\Internet Settings", true);
+                
+                if (key == null)
+                {
+                    _logger.LogWarning("Could not open registry key for Internet Settings");
+                    return;
+                }
+                
+                key.SetValue("ProxyEnable", 1, Microsoft.Win32.RegistryValueKind.DWord);
+                
+                if (proxy.HttpProxy == proxy.HttpsProxy)
+                {
+                    key.SetValue("ProxyServer", proxy.HttpProxy, Microsoft.Win32.RegistryValueKind.String);
+                }
+                else
+                {
+                    var proxyString = $"http={proxy.HttpProxy};https={proxy.HttpsProxy}";
+                    key.SetValue("ProxyServer", proxyString, Microsoft.Win32.RegistryValueKind.String);
+                }
+                
+                NotifyProxyChange();
+                
+                _logger.LogInformation("Windows system proxy settings applied: {ProxyId} ({ProxyName})", 
+                    proxy.Id, proxy.Name);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting Windows system proxy settings for {ProxyId} ({ProxyName})", 
+                    proxy.Id, proxy.Name);
+            }
         }
         
         /// <summary>
@@ -399,6 +472,55 @@ namespace VoiceDictation.Network.Proxy
         /// </summary>
         private void ClearSystemProxyWindows()
         {
+            try
+            {
+                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                    @"Software\Microsoft\Windows\CurrentVersion\Internet Settings", true);
+                
+                if (key == null)
+                {
+                    _logger.LogWarning("Could not open registry key for Internet Settings");
+                    return;
+                }
+                
+                key.SetValue("ProxyEnable", 0, Microsoft.Win32.RegistryValueKind.DWord);
+                
+                NotifyProxyChange();
+                
+                _logger.LogInformation("Windows system proxy settings cleared");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error clearing Windows system proxy settings");
+            }
+        }
+        
+        /// <summary>
+        /// Notifies the system about proxy changes
+        /// </summary>
+        private void NotifyProxyChange()
+        {
+            try
+            {
+                const int INTERNET_OPTION_SETTINGS_CHANGED = 39;
+                const int INTERNET_OPTION_REFRESH = 37;
+                
+                NativeMethods.InternetSetOption(IntPtr.Zero, INTERNET_OPTION_SETTINGS_CHANGED, IntPtr.Zero, 0);
+                NativeMethods.InternetSetOption(IntPtr.Zero, INTERNET_OPTION_REFRESH, IntPtr.Zero, 0);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error notifying system about proxy changes");
+            }
+        }
+        
+        /// <summary>
+        /// Native methods for Windows API
+        /// </summary>
+        private static class NativeMethods
+        {
+            [System.Runtime.InteropServices.DllImport("wininet.dll", SetLastError = true)]
+            public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntPtr lpBuffer, int dwBufferLength);
         }
         
         /// <summary>

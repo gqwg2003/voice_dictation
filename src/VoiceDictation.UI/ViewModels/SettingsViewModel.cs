@@ -1,11 +1,15 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using VoiceDictation.Core.SpeechRecognition;
 using VoiceDictation.Network.Proxy;
+using VoiceDictation.UI.Models;
 
 namespace VoiceDictation.UI.ViewModels
 {
@@ -15,12 +19,13 @@ namespace VoiceDictation.UI.ViewModels
     public class SettingsViewModel : ObservableObject
     {
         private readonly ILogger<SettingsViewModel> _logger;
-        private readonly ISpeechRecognizer _speechRecognizer;
+        private ISpeechRecognizer _speechRecognizer;
         private readonly IProxyManager _proxyManager;
         
         private string _apiKey = string.Empty;
         private bool _isBusy;
         private string _statusMessage = string.Empty;
+        private string _selectedRecognizerType = "Python"; 
         
         public string ApiKey
         {
@@ -39,6 +44,18 @@ namespace VoiceDictation.UI.ViewModels
             get => _statusMessage;
             set => SetProperty(ref _statusMessage, value);
         }
+        
+        public string SelectedRecognizerType
+        {
+            get => _selectedRecognizerType;
+            set => SetProperty(ref _selectedRecognizerType, value);
+        }
+        
+        public ObservableCollection<string> AvailableRecognizerTypes { get; } = new ObservableCollection<string> 
+        { 
+            "Python", 
+            "Microsoft" 
+        };
         
         public ObservableCollection<ProxyConfig> Proxies { get; } = new ObservableCollection<ProxyConfig>();
         
@@ -87,6 +104,7 @@ namespace VoiceDictation.UI.ViewModels
         public IRelayCommand<ProxyConfig> SelectProxyCommand { get; }
         public IRelayCommand<ProxyConfig> TestProxyCommand { get; }
         public IRelayCommand DetectSystemProxyCommand { get; }
+        public IRelayCommand<string> SwitchRecognizerCommand { get; }
         
         /// <summary>
         /// Initializes a new instance of the <see cref="SettingsViewModel"/> class
@@ -108,8 +126,18 @@ namespace VoiceDictation.UI.ViewModels
             SelectProxyCommand = new AsyncRelayCommand<ProxyConfig>(SelectProxyAsync);
             TestProxyCommand = new AsyncRelayCommand<ProxyConfig>(TestProxyAsync);
             DetectSystemProxyCommand = new AsyncRelayCommand(DetectSystemProxyAsync);
+            SwitchRecognizerCommand = new RelayCommand<string>(SwitchRecognizer);
             
             _proxyManager.StatusChanged += ProxyManager_StatusChanged;
+            
+            if (_speechRecognizer.GetType().Name.Contains("Microsoft"))
+            {
+                SelectedRecognizerType = "Microsoft";
+            }
+            else
+            {
+                SelectedRecognizerType = "Python";
+            }
         }
         
         /// <summary>
@@ -489,6 +517,94 @@ namespace VoiceDictation.UI.ViewModels
             else if (e.Status == ProxyStatus.Inactive)
             {
                 SelectedProxy = null;
+            }
+        }
+        
+        private void SwitchRecognizer(string? recognizerType)
+        {
+            if (string.IsNullOrEmpty(recognizerType) || recognizerType == SelectedRecognizerType)
+            {
+                return;
+            }
+            
+            try
+            {
+                IsBusy = true;
+                StatusMessage = $"Переключение распознавателя на {recognizerType}...";
+                
+                // Get the service provider from the App class
+                var serviceProvider = ((App)Application.Current).ServiceProvider;
+                
+                // Get a new instance of the selected recognizer type
+                ISpeechRecognizer? newRecognizer = null;
+                
+                if (recognizerType == "Microsoft")
+                {
+                    // Get Microsoft recognizer
+                    newRecognizer = serviceProvider.GetServices<ISpeechRecognizer>()
+                        .FirstOrDefault(r => r.GetType().Name.Contains("Microsoft"));
+                }
+                else
+                {
+                    // Get Python recognizer
+                    newRecognizer = serviceProvider.GetServices<ISpeechRecognizer>()
+                        .FirstOrDefault(r => r.GetType().Name.Contains("Python"));
+                }
+                
+                if (newRecognizer == null)
+                {
+                    StatusMessage = $"Не удалось найти распознаватель типа {recognizerType}";
+                    return;
+                }
+                
+                // Configure the new recognizer with the same settings
+                if (!string.IsNullOrEmpty(ApiKey))
+                {
+                    newRecognizer.ConfigureWithApiKey(ApiKey);
+                }
+                
+                if (_proxyManager.IsProxyActive && _proxyManager.CurrentProxy != null)
+                {
+                    var proxySettings = new ProxySettings
+                    {
+                        HttpProxy = _proxyManager.CurrentProxy.HttpProxy,
+                        HttpsProxy = _proxyManager.CurrentProxy.HttpsProxy,
+                        Username = _proxyManager.CurrentProxy.Username,
+                        Password = _proxyManager.CurrentProxy.Password
+                    };
+                    
+                    newRecognizer.ConfigureProxy(proxySettings);
+                }
+                
+                // Set the language
+                newRecognizer.Language = _speechRecognizer.Language;
+                
+                // Replace the old recognizer with the new one
+                var oldRecognizer = _speechRecognizer;
+                
+                // Store recognizer preference in application settings
+                AppSettings.Instance.PreferredRecognizer = recognizerType;
+                AppSettings.Instance.Save();
+                
+                // Update the view model's recognizer reference
+                _speechRecognizer = newRecognizer;
+                
+                // Dispose the old recognizer
+                oldRecognizer.Dispose();
+                
+                SelectedRecognizerType = recognizerType;
+                StatusMessage = $"Распознаватель переключен на {recognizerType}";
+                
+                _logger.LogInformation("Switched to {RecognizerType} recognizer", recognizerType);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error switching recognizer to {RecognizerType}", recognizerType);
+                StatusMessage = $"Ошибка переключения распознавателя: {ex.Message}";
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
     }

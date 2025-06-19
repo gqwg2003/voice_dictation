@@ -610,7 +610,6 @@ namespace VoiceDictation.Core.SpeechRecognition
                         }
                     }
                     
-                    // Call the update_config method
                     _pythonRecognizer.update_config(kwargs);
                 }
                 

@@ -1,11 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -302,7 +304,24 @@ namespace VoiceDictation.UI.ViewModels
         /// </summary>
         private void OpenSettings()
         {
-            MessageBox.Show("Функция настроек будет доступна в следующей версии", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+            try
+            {
+                var serviceProvider = ((App)Application.Current).ServiceProvider;
+                
+                var settingsViewModel = serviceProvider.GetRequiredService<SettingsViewModel>();
+                
+                var settingsWindow = new Views.SettingsWindow(settingsViewModel)
+                {
+                    Owner = Application.Current.MainWindow
+                };
+                
+                settingsWindow.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error opening settings window");
+                MessageBox.Show($"Ошибка открытия окна настроек: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
         
         /// <summary>
