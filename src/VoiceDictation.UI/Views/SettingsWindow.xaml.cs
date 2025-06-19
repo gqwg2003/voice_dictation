@@ -32,5 +32,11 @@ namespace VoiceDictation.UI.Views
         {
             _viewModel.Cleanup();
         }
+        
+
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
     }
 } 

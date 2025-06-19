@@ -9,8 +9,8 @@
     xmlns:local="clr-namespace:VoiceDictation.UI.Views"
     mc:Ignorable="d"
     Title="Настройки" 
-    Height="600" 
-    Width="800"
+    Height="650" 
+    Width="850"
     WindowStartupLocation="CenterOwner"
     GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
     BorderThickness="1"
@@ -39,180 +39,246 @@
             </StackPanel>
         </Grid>
         
+        <!-- Header with title -->
+        <materialDesign:ColorZone Grid.Row="0" Mode="PrimaryMid" Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth1">
+            <DockPanel>
+                <Button x:Name="BackButton" 
+                        Style="{StaticResource MaterialDesignIconButton}" 
+                        ToolTip="Вернуться в главное окно"
+                        Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                        Click="BackButton_Click"
+                        DockPanel.Dock="Left">
+                    <materialDesign:PackIcon Kind="ArrowLeft" Width="24" Height="24" />
+                </Button>
+                <TextBlock Text="Настройки приложения" Style="{StaticResource MaterialDesignHeadline5TextBlock}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <materialDesign:PackIcon Kind="Settings" Width="24" Height="24" DockPanel.Dock="Right" />
+            </DockPanel>
+        </materialDesign:ColorZone>
+        
         <!-- Tabs -->
-        <TabControl Grid.Row="1" Margin="10">
+        <TabControl Grid.Row="1" Margin="16" materialDesign:ShadowAssist.ShadowDepth="Depth1" BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
             <!-- API Settings Tab -->
             <TabItem Header="API">
-                <Grid Margin="10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    
-                    <TextBlock Grid.Row="0" Text="Тип распознавания речи" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,20"/>
-                    
-                    <StackPanel Grid.Row="1" Orientation="Vertical" Margin="0,0,0,20">
-                        <TextBlock Text="Выберите систему распознавания речи" Margin="0,0,0,5"/>
-                        <ComboBox ItemsSource="{Binding AvailableRecognizerTypes}"
-                                  SelectedItem="{Binding SelectedRecognizerType}"
-                                  Width="250"
-                                  HorizontalAlignment="Left">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding}"/>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid Margin="16">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
                         
-                        <Button Command="{Binding SwitchRecognizerCommand}" 
-                                CommandParameter="{Binding SelectedRecognizerType}"
-                                Style="{StaticResource MaterialDesignRaisedButton}" 
-                                Content="Применить выбранный распознаватель" 
-                                Margin="0,10,0,0"
-                                HorizontalAlignment="Left"/>
-                    </StackPanel>
-                    
-                    <TextBlock Grid.Row="2" Text="Настройки API ключа" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,20"/>
-                    
-                    <StackPanel Grid.Row="3" Orientation="Vertical">
-                        <TextBlock Text="Введите API ключ для распознавания речи" Margin="0,0,0,5"/>
-                        <TextBox Text="{Binding ApiKey, UpdateSourceTrigger=PropertyChanged}"
-                                 materialDesign:HintAssist.Hint="API ключ"
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                 Width="400"
-                                 HorizontalAlignment="Left"/>
+                        <!-- Speech recognizer type section -->
+                        <materialDesign:Card Grid.Row="0" Margin="0,0,0,16" Padding="16" BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
+                            <StackPanel>
+                                <TextBlock Text="Тип распознавания речи" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,16"/>
+                                
+                                <TextBlock Text="Выберите систему распознавания речи" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Margin="0,0,0,8"/>
+                                <ComboBox ItemsSource="{Binding AvailableRecognizerTypes}"
+                                          SelectedItem="{Binding SelectedRecognizerType}"
+                                          Width="300"
+                                          Margin="0,0,0,16"
+                                          materialDesign:HintAssist.Hint="Тип распознавателя"
+                                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                          HorizontalAlignment="Left">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                
+                                <Button Command="{Binding SwitchRecognizerCommand}" 
+                                        CommandParameter="{Binding SelectedRecognizerType}"
+                                        Style="{StaticResource MaterialDesignRaisedButton}" 
+                                        Content="Применить выбранный распознаватель" 
+                                        materialDesign:ButtonAssist.CornerRadius="4"
+                                        HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </materialDesign:Card>
                         
-                        <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
-                            <Button Command="{Binding SaveApiKeyCommand}" 
-                                    Style="{StaticResource MaterialDesignRaisedButton}" 
-                                    Content="Сохранить ключ" 
-                                    Margin="0,0,10,0"/>
-                            <Button Command="{Binding TestApiKeyCommand}" 
-                                    Style="{StaticResource MaterialDesignOutlinedButton}" 
-                                    Content="Тестировать ключ"/>
-                        </StackPanel>
-                    </StackPanel>
-                    
-                    <TextBlock Grid.Row="4" Text="Информация о API" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,30,0,10"/>
-                    
-                    <TextBlock Grid.Row="5" Text="Для распознавания речи можно использовать Microsoft Azure Speech Service API. Получите ключ в личном кабинете Azure." 
-                               TextWrapping="Wrap" Margin="0,0,0,10"/>
-                </Grid>
+                        <!-- API Key settings section -->
+                        <materialDesign:Card Grid.Row="1" Margin="0,0,0,16" Padding="16" BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
+                            <StackPanel>
+                                <TextBlock Text="Настройки API ключа" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,16"/>
+                                
+                                <TextBlock Text="Введите API ключ для распознавания речи" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Margin="0,0,0,8"/>
+                                <TextBox Text="{Binding ApiKey, UpdateSourceTrigger=PropertyChanged}"
+                                         materialDesign:HintAssist.Hint="API ключ"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Width="450"
+                                         Margin="0,0,0,16"
+                                         HorizontalAlignment="Left"/>
+                                
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Command="{Binding SaveApiKeyCommand}" 
+                                            Style="{StaticResource MaterialDesignRaisedButton}" 
+                                            Content="Сохранить ключ" 
+                                            materialDesign:ButtonAssist.CornerRadius="4"
+                                            Margin="0,0,16,0"/>
+                                    <Button Command="{Binding TestApiKeyCommand}" 
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" 
+                                            Content="Тестировать ключ"
+                                            materialDesign:ButtonAssist.CornerRadius="4"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </materialDesign:Card>
+                        
+                        <!-- API Info section -->
+                        <materialDesign:Card Grid.Row="2" Margin="0,0,0,16" Padding="16" Background="{DynamicResource MaterialDesignBackground}" BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
+                            <StackPanel>
+                                <TextBlock Text="Информация о API" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,8"/>
+                                
+                                <TextBlock TextWrapping="Wrap" Margin="0,8,0,0" Style="{StaticResource MaterialDesignBody1TextBlock}">
+                                    Для распознавания речи можно использовать Microsoft Azure Speech Service API. 
+                                    Получите ключ в личном кабинете Azure.
+                                </TextBlock>
+                            </StackPanel>
+                        </materialDesign:Card>
+                    </Grid>
+                </ScrollViewer>
             </TabItem>
             
             <!-- Proxy Settings Tab -->
             <TabItem Header="Прокси">
-                <Grid Margin="10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    
-                    <TextBlock Grid.Row="0" Text="Настройки прокси" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,20"/>
-                    
-                    <!-- Add new proxy -->
-                    <Expander Grid.Row="1" Header="Добавить новый прокси" Margin="0,0,0,10">
-                        <Grid Margin="0,10,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            
-                            <TextBox Grid.Row="0" Grid.Column="0" Margin="0,0,5,10"
-                                     Text="{Binding NewProxyName, UpdateSourceTrigger=PropertyChanged}"
-                                     materialDesign:HintAssist.Hint="Название"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                            
-                            <TextBox Grid.Row="0" Grid.Column="1" Margin="5,0,0,10"
-                                     Text="{Binding NewProxyUrl, UpdateSourceTrigger=PropertyChanged}"
-                                     materialDesign:HintAssist.Hint="URL (http://proxy:port)"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                            
-                            <TextBox Grid.Row="1" Grid.Column="0" Margin="0,0,5,10"
-                                     Text="{Binding NewProxyUsername, UpdateSourceTrigger=PropertyChanged}"
-                                     materialDesign:HintAssist.Hint="Имя пользователя (опционально)"
-                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                            
-                            <PasswordBox Grid.Row="1" Grid.Column="1" Margin="5,0,0,10"
-                                         materialDesign:HintAssist.Hint="Пароль (опционально)"
-                                         Style="{StaticResource MaterialDesignOutlinedPasswordBox}"
-                                         materialDesign:PasswordBoxAssist.Password="{Binding NewProxyPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                            
-                            <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                                <Button Command="{Binding AddProxyCommand}" 
-                                        Style="{StaticResource MaterialDesignRaisedButton}" 
-                                        Content="Добавить" 
-                                        Margin="0,0,10,0"/>
-                                <Button Command="{Binding DetectSystemProxyCommand}" 
-                                        Style="{StaticResource MaterialDesignOutlinedButton}" 
-                                        Content="Определить системный прокси"/>
-                            </StackPanel>
-                        </Grid>
-                    </Expander>
-                    
-                    <!-- Proxy list -->
-                    <DataGrid Grid.Row="2" 
-                              ItemsSource="{Binding Proxies}" 
-                              SelectedItem="{Binding SelectedProxy}" 
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False"
-                              CanUserDeleteRows="False"
-                              IsReadOnly="True"
-                              HeadersVisibility="Column"
-                              materialDesign:DataGridAssist.CellPadding="8"
-                              materialDesign:DataGridAssist.ColumnHeaderPadding="8">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="*"/>
-                            <DataGridTextColumn Header="HTTP" Binding="{Binding HttpProxy}" Width="*"/>
-                            <DataGridCheckBoxColumn Header="Системный" Binding="{Binding IsSystemProxy}" ElementStyle="{StaticResource MaterialDesignDataGridCheckBoxColumnStyle}" EditingElementStyle="{StaticResource MaterialDesignDataGridCheckBoxColumnEditingStyle}" Width="Auto"/>
-                            <DataGridTemplateColumn Width="Auto">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Button Command="{Binding DataContext.SelectProxyCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
-                                                    CommandParameter="{Binding}"
-                                                    Style="{StaticResource MaterialDesignIconButton}" 
-                                                    ToolTip="Выбрать">
-                                                <materialDesign:PackIcon Kind="Check" />
-                                            </Button>
-                                            <Button Command="{Binding DataContext.TestProxyCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
-                                                    CommandParameter="{Binding}"
-                                                    Style="{StaticResource MaterialDesignIconButton}" 
-                                                    ToolTip="Тестировать">
-                                                <materialDesign:PackIcon Kind="TestTube" />
-                                            </Button>
-                                            <Button Command="{Binding DataContext.RemoveProxyCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
-                                                    CommandParameter="{Binding}"
-                                                    Style="{StaticResource MaterialDesignIconButton}" 
-                                                    ToolTip="Удалить">
-                                                <materialDesign:PackIcon Kind="Delete" />
-                                            </Button>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                    
-                    <TextBlock Grid.Row="3" Text="Выбранный прокси будет использоваться для всех запросов API." TextWrapping="Wrap" Margin="0,10,0,0"/>
-                </Grid>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid Margin="16">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <TextBlock Grid.Row="0" Text="Настройки прокси" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,16"/>
+                        
+                        <!-- Add new proxy section -->
+                        <materialDesign:Card Grid.Row="1" Margin="0,0,0,16" Padding="8" BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
+                            <Expander Header="Добавить новый прокси" IsExpanded="True" Margin="8">
+                                <Grid Margin="0,16,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <TextBox Grid.Row="0" Grid.Column="0" Margin="0,0,8,16"
+                                             Text="{Binding NewProxyName, UpdateSourceTrigger=PropertyChanged}"
+                                             materialDesign:HintAssist.Hint="Название"
+                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                                    
+                                    <TextBox Grid.Row="0" Grid.Column="1" Margin="8,0,0,16"
+                                             Text="{Binding NewProxyUrl, UpdateSourceTrigger=PropertyChanged}"
+                                             materialDesign:HintAssist.Hint="URL (http://proxy:port)"
+                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                                    
+                                    <TextBox Grid.Row="1" Grid.Column="0" Margin="0,0,8,16"
+                                             Text="{Binding NewProxyUsername, UpdateSourceTrigger=PropertyChanged}"
+                                             materialDesign:HintAssist.Hint="Имя пользователя (опционально)"
+                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                                    
+                                    <PasswordBox Grid.Row="1" Grid.Column="1" Margin="8,0,0,16"
+                                                 materialDesign:HintAssist.Hint="Пароль (опционально)"
+                                                 Style="{StaticResource MaterialDesignOutlinedPasswordBox}"
+                                                 materialDesign:PasswordBoxAssist.Password="{Binding NewProxyPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    
+                                    <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Command="{Binding AddProxyCommand}" 
+                                                Style="{StaticResource MaterialDesignRaisedButton}" 
+                                                Content="Добавить" 
+                                                materialDesign:ButtonAssist.CornerRadius="4"
+                                                Margin="0,0,16,0"/>
+                                        <Button Command="{Binding DetectSystemProxyCommand}" 
+                                                Style="{StaticResource MaterialDesignOutlinedButton}" 
+                                                Content="Определить системный прокси"
+                                                materialDesign:ButtonAssist.CornerRadius="4"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Expander>
+                        </materialDesign:Card>
+                        
+                        <!-- Proxy list section -->
+                        <materialDesign:Card Grid.Row="2" Margin="0,0,0,16" Padding="16" BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                
+                                <TextBlock Grid.Row="0" Text="Список прокси-серверов" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Margin="0,0,0,8"/>
+                                
+                                <DataGrid Grid.Row="1" 
+                                          ItemsSource="{Binding Proxies}" 
+                                          SelectedItem="{Binding SelectedProxy}" 
+                                          AutoGenerateColumns="False"
+                                          CanUserAddRows="False"
+                                          CanUserDeleteRows="False"
+                                          IsReadOnly="True"
+                                          HeadersVisibility="Column"
+                                          BorderThickness="1"
+                                          BorderBrush="{DynamicResource MaterialDesignDivider}"
+                                          materialDesign:DataGridAssist.CellPadding="8"
+                                          materialDesign:DataGridAssist.ColumnHeaderPadding="8">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="*"/>
+                                        <DataGridTextColumn Header="HTTP" Binding="{Binding HttpProxy}" Width="*"/>
+                                        <DataGridCheckBoxColumn Header="Системный" Binding="{Binding IsSystemProxy}" ElementStyle="{StaticResource MaterialDesignDataGridCheckBoxColumnStyle}" EditingElementStyle="{StaticResource MaterialDesignDataGridCheckBoxColumnEditingStyle}" Width="Auto"/>
+                                        <DataGridTemplateColumn Width="Auto">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Button Command="{Binding DataContext.SelectProxyCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
+                                                                CommandParameter="{Binding}"
+                                                                Style="{StaticResource MaterialDesignIconFlatButton}" 
+                                                                ToolTip="Выбрать">
+                                                            <materialDesign:PackIcon Kind="Check" />
+                                                        </Button>
+                                                        <Button Command="{Binding DataContext.TestProxyCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
+                                                                CommandParameter="{Binding}"
+                                                                Style="{StaticResource MaterialDesignIconFlatButton}" 
+                                                                ToolTip="Тестировать">
+                                                            <materialDesign:PackIcon Kind="TestTube" />
+                                                        </Button>
+                                                        <Button Command="{Binding DataContext.RemoveProxyCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
+                                                                CommandParameter="{Binding}"
+                                                                Style="{StaticResource MaterialDesignIconFlatButton}" 
+                                                                ToolTip="Удалить">
+                                                            <materialDesign:PackIcon Kind="Delete" />
+                                                        </Button>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </materialDesign:Card>
+                        
+                        <materialDesign:Card Grid.Row="3" Margin="0" Padding="16" Background="{DynamicResource MaterialDesignBackground}" BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
+                            <TextBlock Text="Выбранный прокси будет использоваться для всех запросов API." TextWrapping="Wrap" Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                        </materialDesign:Card>
+                    </Grid>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
         
-        <!-- Status bar -->
-        <materialDesign:Card Grid.Row="2" Margin="10,0,10,10" Padding="5">
-            <TextBlock Text="{Binding StatusMessage}" Margin="5" TextWrapping="Wrap"/>
+        <!-- Footer with status bar -->
+        <materialDesign:Card Grid.Row="2" Margin="16,0,16,16" Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth1" BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
+            <DockPanel>
+                <Button Content="Закрыть" 
+                        Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                        Click="BackButton_Click"
+                        Style="{StaticResource MaterialDesignOutlinedButton}" 
+                        materialDesign:ButtonAssist.CornerRadius="4"
+                        DockPanel.Dock="Right" />
+                <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" TextWrapping="Wrap" Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+            </DockPanel>
         </materialDesign:Card>
     </Grid>
 </mah:MetroWindow> 

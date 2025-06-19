@@ -8,7 +8,9 @@
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:local="clr-namespace:VoiceDictation.UI.Views"
     mc:Ignorable="d"
-    Title="Voice Dictation" Height="600" Width="800"
+    Title="Voice Dictation" 
+    Height="650" 
+    Width="850"
     WindowStartupLocation="CenterScreen"
     GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
     BorderThickness="1"
@@ -36,79 +38,180 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
+        <!-- Header with title -->
+        <materialDesign:ColorZone Grid.Row="0" Mode="PrimaryMid" Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth1">
+            <DockPanel>
+                <materialDesign:PackIcon Kind="Microphone" Width="24" Height="24" VerticalAlignment="Center" DockPanel.Dock="Left" />
+                <TextBlock Text="Распознавание речи" Style="{StaticResource MaterialDesignHeadline5TextBlock}" Margin="16,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                <Button Command="{Binding OpenSettingsCommand}" 
+                        Style="{StaticResource MaterialDesignIconButton}" 
+                        ToolTip="Настройки"
+                        DockPanel.Dock="Right">
+                    <materialDesign:PackIcon Kind="Settings" Width="24" Height="24" />
+                </Button>
+            </DockPanel>
+        </materialDesign:ColorZone>
+        
         <!-- Toolbar -->
-        <ToolBarTray Grid.Row="0" Background="{DynamicResource MaterialDesignPaper}">
-            <ToolBar Style="{DynamicResource MaterialDesignToolBar}" ClipToBounds="False">
-                <Button Command="{Binding StartRecognitionCommand}" ToolTip="Начать запись">
-                    <materialDesign:PackIcon Kind="Microphone" />
-                </Button>
-                <Button Command="{Binding StopRecognitionCommand}" ToolTip="Остановить запись">
-                    <materialDesign:PackIcon Kind="StopCircleOutline" />
-                </Button>
-                <Separator />
-                <Button Command="{Binding LoadTextCommand}" ToolTip="Загрузить текст">
-                    <materialDesign:PackIcon Kind="FolderOpen" />
-                </Button>
-                <Button Command="{Binding SaveTextCommand}" ToolTip="Сохранить текст">
-                    <materialDesign:PackIcon Kind="ContentSave" />
-                </Button>
-                <Separator />
-                <Button Command="{Binding ClearTextCommand}" ToolTip="Очистить">
-                    <materialDesign:PackIcon Kind="Delete" />
-                </Button>
-                <Separator />
-                <ComboBox ItemsSource="{Binding AvailableLanguages}"
-                          SelectedItem="{Binding SelectedLanguage}"
-                          DisplayMemberPath="DisplayName"
-                          MinWidth="120"
-                          materialDesign:HintAssist.Hint="Язык"/>
-            </ToolBar>
-        </ToolBarTray>
+        <materialDesign:Card Grid.Row="1" Margin="16,16,16,0" materialDesign:ShadowAssist.ShadowDepth="Depth1" BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <!-- Control buttons -->
+                <ToolBarTray Grid.Row="0" Background="Transparent" IsLocked="True">
+                    <ToolBar Style="{DynamicResource MaterialDesignToolBar}" ClipToBounds="False" Background="Transparent">
+                        <Button Command="{Binding StartRecognitionCommand}" 
+                                ToolTip="Начать запись" 
+                                Style="{StaticResource MaterialDesignRaisedButton}" 
+                                Background="{DynamicResource PrimaryHueMidBrush}"
+                                BorderBrush="{DynamicResource PrimaryHueMidBrush}"
+                                Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                                materialDesign:ButtonAssist.CornerRadius="4"
+                                Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="Microphone" Width="20" Height="20" />
+                                <TextBlock Text="Начать запись" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding StopRecognitionCommand}" 
+                                ToolTip="Остановить запись" 
+                                Style="{StaticResource MaterialDesignRaisedButton}" 
+                                materialDesign:ButtonAssist.CornerRadius="4"
+                                Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="StopCircleOutline" Width="20" Height="20" />
+                                <TextBlock Text="Остановить" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </Button>
+                        <Separator Style="{StaticResource MaterialDesignDarkSeparator}" Margin="8,0" />
+                        <Button Command="{Binding LoadTextCommand}" 
+                                ToolTip="Загрузить текст" 
+                                Style="{StaticResource MaterialDesignOutlinedButton}" 
+                                materialDesign:ButtonAssist.CornerRadius="4"
+                                Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="FolderOpen" Width="20" Height="20" />
+                                <TextBlock Text="Загрузить" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding SaveTextCommand}" 
+                                ToolTip="Сохранить текст" 
+                                Style="{StaticResource MaterialDesignOutlinedButton}" 
+                                materialDesign:ButtonAssist.CornerRadius="4"
+                                Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="ContentSave" Width="20" Height="20" />
+                                <TextBlock Text="Сохранить" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </Button>
+                        <Separator Style="{StaticResource MaterialDesignDarkSeparator}" Margin="8,0" />
+                        <Button Command="{Binding ClearTextCommand}" 
+                                ToolTip="Очистить" 
+                                Style="{StaticResource MaterialDesignOutlinedButton}" 
+                                materialDesign:ButtonAssist.CornerRadius="4">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="Delete" Width="20" Height="20" />
+                                <TextBlock Text="Очистить" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </Button>
+                    </ToolBar>
+                </ToolBarTray>
+                
+                <!-- Language selector -->
+                <Border Grid.Row="1" Background="{DynamicResource MaterialDesignDivider}" Height="1" Margin="0,8,0,0"/>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="16,16,16,16">
+                    <TextBlock Text="Язык распознавания:" VerticalAlignment="Center" Margin="0,0,16,0" />
+                    <ComboBox ItemsSource="{Binding AvailableLanguages}"
+                              SelectedItem="{Binding SelectedLanguage}"
+                              DisplayMemberPath="DisplayName"
+                              MinWidth="200"
+                              materialDesign:HintAssist.Hint="Выберите язык"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
+                </StackPanel>
+            </Grid>
+        </materialDesign:Card>
         
         <!-- Main text area -->
-        <TextBox Grid.Row="1" 
-                 Text="{Binding RecognizedText, UpdateSourceTrigger=PropertyChanged}" 
-                 TextWrapping="Wrap" 
-                 AcceptsReturn="True"
-                 VerticalScrollBarVisibility="Auto"
-                 materialDesign:TextFieldAssist.TextFieldCornerRadius="2"
-                 Margin="10"/>
+        <materialDesign:Card Grid.Row="2" Margin="16,16,16,16" materialDesign:ShadowAssist.ShadowDepth="Depth1" BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <TextBlock Grid.Row="0" Text="Распознанный текст" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Margin="16,16,16,8"/>
+                
+                <TextBox Grid.Row="1" 
+                         Text="{Binding RecognizedText, UpdateSourceTrigger=PropertyChanged}" 
+                         TextWrapping="Wrap" 
+                         AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Auto"
+                         materialDesign:TextFieldAssist.TextFieldCornerRadius="4"
+                         BorderThickness="0,1,0,0"
+                         BorderBrush="{DynamicResource MaterialDesignDivider}"
+                         Padding="16"
+                         Margin="0"/>
+            </Grid>
+        </materialDesign:Card>
         
         <!-- Status area -->
-        <materialDesign:Card Grid.Row="2" Margin="10,0,10,10" Padding="5">
+        <materialDesign:Card Grid.Row="3" Margin="16,0,16,16" Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth1" BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
             <StackPanel>
-                <TextBlock Text="{Binding StatusMessage}" Margin="5"/>
+                <TextBlock Text="{Binding StatusMessage}" Margin="0,0,0,8" Style="{StaticResource MaterialDesignBody1TextBlock}"/>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <ProgressBar Grid.Column="0" Value="{Binding RecognitionProgress}" Margin="5"/>
-                    <TextBlock Grid.Column="1" Text="{Binding RecordingTimeDisplay}" Margin="5,0,5,0"/>
+                    <ProgressBar Grid.Column="0" Value="{Binding RecognitionProgress}" Height="8" Margin="0,0,16,0"/>
+                    <TextBlock Grid.Column="1" Text="{Binding RecordingTimeDisplay}" Style="{StaticResource MaterialDesignBody2TextBlock}" FontWeight="Bold"/>
                 </Grid>
             </StackPanel>
         </materialDesign:Card>
         
         <!-- Hot key area -->
-        <materialDesign:Card Grid.Row="3" Margin="10,0,10,10" Padding="5">
+        <materialDesign:Card Grid.Row="4" Margin="16,0,16,16" Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth1" Background="{DynamicResource MaterialDesignBackground}" BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
             <Grid>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Для начала записи: Ctrl+Shift+R" Margin="5"/>
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Command="{Binding OpenHelpCommand}" Style="{StaticResource MaterialDesignFlatButton}" Margin="5,0,5,0">
-                        <materialDesign:PackIcon Kind="Help" />
-                    </Button>
+                
+                <materialDesign:PackIcon Grid.Column="0" Kind="KeyboardOutline" Width="24" Height="24" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                
+                <StackPanel Grid.Column="1" Orientation="Vertical">
+                    <TextBlock Text="Горячие клавиши" Style="{StaticResource MaterialDesignSubtitle2TextBlock}" Margin="0,0,0,4"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Border Background="{DynamicResource MaterialDesignChipBackground}" CornerRadius="4" Padding="8,4" Margin="0,0,8,0">
+                            <TextBlock Text="Ctrl+Shift+R" FontWeight="Medium"/>
+                        </Border>
+                        <TextBlock Text="- начать запись" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <Border Background="{DynamicResource MaterialDesignChipBackground}" CornerRadius="4" Padding="8,4" Margin="0,0,8,0">
+                            <TextBlock Text="Esc" FontWeight="Medium"/>
+                        </Border>
+                        <TextBlock Text="- остановить запись" VerticalAlignment="Center"/>
+                    </StackPanel>
                 </StackPanel>
+                
+                <Button Grid.Column="2" 
+                        Command="{Binding OpenHelpCommand}" 
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        ToolTip="Справка">
+                    <materialDesign:PackIcon Kind="Help" Width="24" Height="24"/>
+                </Button>
             </Grid>
         </materialDesign:Card>
-        
     </Grid>
 </mah:MetroWindow> 
