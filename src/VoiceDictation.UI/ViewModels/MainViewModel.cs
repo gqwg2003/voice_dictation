@@ -29,52 +29,34 @@ namespace VoiceDictation.UI.ViewModels
         private DateTime _recordingStartTime;
         private System.Timers.Timer? _recordingTimer;
         
-        /// <summary>
-        /// Gets or sets the recognized text
-        /// </summary>
         public string RecognizedText
         {
             get => _recognizedText;
             set => SetProperty(ref _recognizedText, value);
         }
         
-        /// <summary>
-        /// Gets or sets the status message
-        /// </summary>
         public string StatusMessage
         {
             get => _statusMessage;
             set => SetProperty(ref _statusMessage, value);
         }
         
-        /// <summary>
-        /// Gets or sets the recognition progress (0-100)
-        /// </summary>
         public double RecognitionProgress
         {
             get => _recognitionProgress;
             set => SetProperty(ref _recognitionProgress, value);
         }
         
-        /// <summary>
-        /// Gets or sets the recording time display
-        /// </summary>
         public string RecordingTimeDisplay
         {
             get => _recordingTimeDisplay;
             set => SetProperty(ref _recordingTimeDisplay, value);
         }
         
-        /// <summary>
-        /// Gets the available languages for speech recognition
-        /// </summary>
         public ObservableCollection<LanguageViewModel> AvailableLanguages { get; } = new ObservableCollection<LanguageViewModel>();
         
         private LanguageViewModel? _selectedLanguage;
         
-        /// <summary>
-        /// Gets or sets the selected language for speech recognition
-        /// </summary>
         public LanguageViewModel? SelectedLanguage
         {
             get => _selectedLanguage;
@@ -87,39 +69,12 @@ namespace VoiceDictation.UI.ViewModels
             }
         }
         
-        /// <summary>
-        /// Gets the command to start speech recognition
-        /// </summary>
         public IRelayCommand StartRecognitionCommand { get; }
-        
-        /// <summary>
-        /// Gets the command to stop speech recognition
-        /// </summary>
         public IRelayCommand StopRecognitionCommand { get; }
-        
-        /// <summary>
-        /// Gets the command to load text from a file
-        /// </summary>
         public IRelayCommand LoadTextCommand { get; }
-        
-        /// <summary>
-        /// Gets the command to save text to a file
-        /// </summary>
         public IRelayCommand SaveTextCommand { get; }
-        
-        /// <summary>
-        /// Gets the command to clear the text
-        /// </summary>
         public IRelayCommand ClearTextCommand { get; }
-        
-        /// <summary>
-        /// Gets the command to open settings
-        /// </summary>
         public IRelayCommand OpenSettingsCommand { get; }
-        
-        /// <summary>
-        /// Gets the command to open help
-        /// </summary>
         public IRelayCommand OpenHelpCommand { get; }
         
         /// <summary>
@@ -475,14 +430,7 @@ namespace VoiceDictation.UI.ViewModels
     /// </summary>
     public class LanguageViewModel
     {
-        /// <summary>
-        /// Gets or sets the language code
-        /// </summary>
         public string Code { get; set; } = string.Empty;
-        
-        /// <summary>
-        /// Gets or sets the display name
-        /// </summary>
         public string DisplayName { get; set; } = string.Empty;
     }
 } 

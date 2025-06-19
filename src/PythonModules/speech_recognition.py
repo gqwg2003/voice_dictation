@@ -18,14 +18,6 @@ DetectorFactory.seed = 0
 
 class SpeechRecognizer:
     def __init__(self, api_key=None, proxy=None, region="westus"):
-        """
-        Initialize speech recognizer with optional API key and proxy settings.
-        
-        Args:
-            api_key (str, optional): API key for speech recognition service
-            proxy (dict, optional): Proxy configuration in the format {"http": "http://...", "https": "https://..."}
-            region (str, optional): Microsoft Azure region for speech services
-        """
         self.recognizer = sr.Recognizer()
         self.api_key = api_key
         self.proxy = proxy
@@ -37,15 +29,6 @@ class SpeechRecognizer:
             self.session.proxies.update(proxy)
     
     def set_language(self, language):
-        """
-        Set the recognition language.
-        
-        Args:
-            language (str): Language code (e.g., 'ru-RU', 'en-US')
-            
-        Returns:
-            bool: True if language was set successfully
-        """
         if not language:
             return False
         self.language = language
@@ -53,17 +36,6 @@ class SpeechRecognizer:
         return True
     
     def update_config(self, apiKey=None, proxy=None, region=None):
-        """
-        Update recognizer configuration.
-        
-        Args:
-            apiKey (str, optional): API key for speech recognition service
-            proxy (dict, optional): Proxy configuration
-            region (str, optional): Region for Microsoft services
-            
-        Returns:
-            bool: True if configuration was updated successfully
-        """
         if apiKey is not None:
             self.api_key = apiKey
         if proxy is not None:
@@ -81,16 +53,6 @@ class SpeechRecognizer:
         return True
     
     def recognize_from_microphone(self, language=None, duration=5):
-        """
-        Record audio from microphone and recognize speech.
-        
-        Args:
-            language (str, optional): Language code ('ru-RU', 'en-US'), or None for auto-detection
-            duration (int, optional): Duration to record in seconds
-            
-        Returns:
-            dict: Recognition result with text, language, and confidence
-        """
         if language is None:
             language = self.language
         
@@ -102,16 +64,6 @@ class SpeechRecognizer:
         return self._process_audio(audio, language)
     
     def recognize_from_file(self, file_path, language=None):
-        """
-        Recognize speech from audio file.
-        
-        Args:
-            file_path (str): Path to audio file
-            language (str, optional): Language code ('ru-RU', 'en-US'), or None for auto-detection
-            
-        Returns:
-            dict: Recognition result with text, language, and confidence
-        """
         if language is None:
             language = self.language
         
@@ -121,16 +73,6 @@ class SpeechRecognizer:
         return self._process_audio(audio, language)
     
     def _process_audio(self, audio, language=None):
-        """
-        Process audio data and perform speech recognition.
-        
-        Args:
-            audio: Audio data from recognizer
-            language (str, optional): Language code or None for auto-detection
-            
-        Returns:
-            dict: Recognition result with text, language, and confidence
-        """
         wav_data = audio.get_wav_data()
         audio_segment = AudioSegment.from_wav(io.BytesIO(wav_data))
         
@@ -155,15 +97,6 @@ class SpeechRecognizer:
             return {"error": f"Error: {str(e)}", "language": language, "confidence": 0.0}
     
     def _detect_language_from_audio(self, audio_segment):
-        """
-        Detect language from audio sample.
-        
-        Args:
-            audio_segment: Audio segment from pydub
-            
-        Returns:
-            str: Detected language code ('ru' or 'en')
-        """
         sample_duration = min(2000, len(audio_segment))
         sample = audio_segment[:sample_duration]
         
@@ -186,16 +119,6 @@ class SpeechRecognizer:
                 os.unlink(sample_path)
     
     def _recognize_with_api(self, audio, language):
-        """
-        Recognize speech using the configured API key.
-        
-        Args:
-            audio: Audio data
-            language (str): Language code
-            
-        Returns:
-            dict: Recognition result
-        """
         if self.api_key and self.api_key.startswith("microsoft:"):
             api_key = self.api_key.split(":", 1)[1]
             return self._recognize_with_microsoft(audio, language, api_key)
@@ -205,17 +128,6 @@ class SpeechRecognizer:
         return {"text": text, "language": language, "confidence": 0.8}
     
     def _recognize_with_microsoft(self, audio, language, api_key):
-        """
-        Recognize speech using Microsoft Cognitive Services.
-        
-        Args:
-            audio: Audio data
-            language (str): Language code
-            api_key (str): Microsoft API key
-            
-        Returns:
-            dict: Recognition result
-        """
         endpoint = f"https://{self.region}.api.cognitive.microsoft.com/sts/v1.0/issueToken"
         
         headers = {
@@ -254,7 +166,6 @@ class SpeechRecognizer:
                 text = result.get('DisplayText', '')
                 confidence = 0.8
                 
-                # Try to extract confidence from NBest results if available
                 if 'NBest' in result and len(result['NBest']) > 0:
                     confidence = result['NBest'][0].get('Confidence', 0.8)
                 
@@ -271,16 +182,6 @@ class SpeechRecognizer:
             return {"error": f"Microsoft API error: {str(e)}", "language": language, "confidence": 0.0}
     
     def _process_mixed_language_text(self, text, primary_language):
-        """
-        Process text that might contain mixed language content.
-        
-        Args:
-            text (str): Text to process
-            primary_language (str): Primary language of the text
-            
-        Returns:
-            str: Processed text
-        """
         if not text:
             return text
             
@@ -316,7 +217,6 @@ class SpeechRecognizer:
                 # For Russian as primary language
                 if is_latin and not self._is_likely_technical_term(word):
                     # Consider transliteration for non-technical terms
-                    # Note: transliteration not fully implemented in this version
                     processed_words.append(word)
                 else:
                     processed_words.append(word)
@@ -327,15 +227,6 @@ class SpeechRecognizer:
         return ' '.join(processed_words)
     
     def _is_likely_technical_term(self, word):
-        """
-        Determine if a word is likely a technical term that should be preserved.
-        
-        Args:
-            word (str): Word to check
-            
-        Returns:
-            bool: True if the word is likely a technical term
-        """
         if not word or len(word) < 2:
             return False
             
@@ -376,15 +267,6 @@ class SpeechRecognizer:
         return False
     
     def _transliterate_latin_to_cyrillic(self, text):
-        """
-        Transliterate Latin characters to Cyrillic.
-        
-        Args:
-            text (str): Text to transliterate
-            
-        Returns:
-            str: Transliterated text
-        """
         # Mapping from Latin to Cyrillic
         translit_map = {
             'a': 'а', 'b': 'б', 'v': 'в', 'g': 'г', 'd': 'д', 'e': 'е',
@@ -410,16 +292,6 @@ class SpeechRecognizer:
         return result
     
     def record_audio(self, duration=5, sample_rate=16000):
-        """
-        Record audio from microphone.
-        
-        Args:
-            duration (int): Duration to record in seconds
-            sample_rate (int): Sample rate in Hz
-            
-        Returns:
-            np.ndarray: Recorded audio data
-        """
         print(f"Recording {duration} seconds of audio...")
         audio_data = sd.rec(int(duration * sample_rate), 
                            samplerate=sample_rate, channels=1, dtype='int16')
@@ -427,12 +299,6 @@ class SpeechRecognizer:
         return audio_data
     
     def get_available_languages(self):
-        """
-        Get available language options.
-        
-        Returns:
-            list: List of available language codes and names
-        """
         return [
             {"code": "ru-RU", "name": "Russian"},
             {"code": "en-US", "name": "English (US)"},

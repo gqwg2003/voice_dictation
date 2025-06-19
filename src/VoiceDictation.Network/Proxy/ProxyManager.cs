@@ -22,13 +22,8 @@ namespace VoiceDictation.Network.Proxy
         private string? _configFilePath;
         private readonly HttpClient _httpClient;
         
-        /// <inheritdoc/>
         public event EventHandler<ProxyStatusChangedEventArgs>? StatusChanged;
-        
-        /// <inheritdoc/>
         public bool IsProxyActive => _currentProxy != null;
-        
-        /// <inheritdoc/>
         public ProxyConfig? CurrentProxy => _currentProxy;
         
         /// <summary>
@@ -42,13 +37,11 @@ namespace VoiceDictation.Network.Proxy
             _httpClient = httpClientFactory.CreateClient("ProxyTest");
         }
         
-        /// <inheritdoc/>
         public async Task<IEnumerable<ProxyConfig>> GetProxyListAsync()
         {
             return await Task.FromResult(_proxies.Values);
         }
         
-        /// <inheritdoc/>
         public async Task<bool> AddProxyAsync(ProxyConfig config)
         {
             if (string.IsNullOrEmpty(config.Id))
@@ -78,7 +71,6 @@ namespace VoiceDictation.Network.Proxy
             return true;
         }
         
-        /// <inheritdoc/>
         public async Task<bool> RemoveProxyAsync(string proxyId)
         {
             if (!_proxies.TryGetValue(proxyId, out var proxy))
@@ -104,7 +96,6 @@ namespace VoiceDictation.Network.Proxy
             return true;
         }
         
-        /// <inheritdoc/>
         public async Task<bool> SelectProxyAsync(string proxyId)
         {
             if (!_proxies.TryGetValue(proxyId, out var proxy))
@@ -155,7 +146,6 @@ namespace VoiceDictation.Network.Proxy
             }
         }
         
-        /// <inheritdoc/>
         public async Task<bool> DeactivateProxyAsync()
         {
             if (_currentProxy == null)
@@ -190,7 +180,6 @@ namespace VoiceDictation.Network.Proxy
             }
         }
         
-        /// <inheritdoc/>
         public async Task<ProxyTestResult> TestProxyAsync(string? proxyId = null)
         {
             ProxyConfig proxyToTest;
@@ -256,7 +245,6 @@ namespace VoiceDictation.Network.Proxy
             }
         }
         
-        /// <inheritdoc/>
         public async Task<ProxyConfig?> DetectSystemProxyAsync()
         {
             try
@@ -314,7 +302,6 @@ namespace VoiceDictation.Network.Proxy
             }
         }
         
-        /// <inheritdoc/>
         public async Task<bool> LoadConfigAsync(string filePath)
         {
             try
@@ -357,7 +344,6 @@ namespace VoiceDictation.Network.Proxy
             }
         }
         
-        /// <inheritdoc/>
         public async Task<bool> SaveConfigAsync(string filePath)
         {
             try

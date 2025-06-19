@@ -22,43 +22,28 @@ namespace VoiceDictation.UI.ViewModels
         private bool _isBusy;
         private string _statusMessage = string.Empty;
         
-        /// <summary>
-        /// Gets or sets the API key for speech recognition
-        /// </summary>
         public string ApiKey
         {
             get => _apiKey;
             set => SetProperty(ref _apiKey, value);
         }
         
-        /// <summary>
-        /// Gets or sets a value indicating whether the view model is busy
-        /// </summary>
         public bool IsBusy
         {
             get => _isBusy;
             set => SetProperty(ref _isBusy, value);
         }
         
-        /// <summary>
-        /// Gets or sets the status message
-        /// </summary>
         public string StatusMessage
         {
             get => _statusMessage;
             set => SetProperty(ref _statusMessage, value);
         }
         
-        /// <summary>
-        /// Gets the available proxies
-        /// </summary>
         public ObservableCollection<ProxyConfig> Proxies { get; } = new ObservableCollection<ProxyConfig>();
         
         private ProxyConfig? _selectedProxy;
         
-        /// <summary>
-        /// Gets or sets the selected proxy
-        /// </summary>
         public ProxyConfig? SelectedProxy
         {
             get => _selectedProxy;
@@ -70,80 +55,37 @@ namespace VoiceDictation.UI.ViewModels
         private string _newProxyUsername = string.Empty;
         private string _newProxyPassword = string.Empty;
         
-        /// <summary>
-        /// Gets or sets the name for a new proxy
-        /// </summary>
         public string NewProxyName
         {
             get => _newProxyName;
             set => SetProperty(ref _newProxyName, value);
         }
         
-        /// <summary>
-        /// Gets or sets the URL for a new proxy
-        /// </summary>
         public string NewProxyUrl
         {
             get => _newProxyUrl;
             set => SetProperty(ref _newProxyUrl, value);
         }
         
-        /// <summary>
-        /// Gets or sets the username for a new proxy
-        /// </summary>
         public string NewProxyUsername
         {
             get => _newProxyUsername;
             set => SetProperty(ref _newProxyUsername, value);
         }
         
-        /// <summary>
-        /// Gets or sets the password for a new proxy
-        /// </summary>
         public string NewProxyPassword
         {
             get => _newProxyPassword;
             set => SetProperty(ref _newProxyPassword, value);
         }
         
-        /// <summary>
-        /// Gets the command to save the API key
-        /// </summary>
         public IRelayCommand SaveApiKeyCommand { get; }
-        
-        /// <summary>
-        /// Gets the command to test the API key
-        /// </summary>
         public IRelayCommand TestApiKeyCommand { get; }
-        
-        /// <summary>
-        /// Gets the command to load proxies
-        /// </summary>
         public IRelayCommand LoadProxiesCommand { get; }
-        
-        /// <summary>
-        /// Gets the command to add a new proxy
-        /// </summary>
         public IRelayCommand AddProxyCommand { get; }
-        
-        /// <summary>
-        /// Gets the command to remove a proxy
-        /// </summary>
         public IRelayCommand<ProxyConfig> RemoveProxyCommand { get; }
-        
-        /// <summary>
-        /// Gets the command to select a proxy
-        /// </summary>
         public IRelayCommand<ProxyConfig> SelectProxyCommand { get; }
-        
-        /// <summary>
-        /// Gets the command to test a proxy
-        /// </summary>
         public IRelayCommand<ProxyConfig> TestProxyCommand { get; }
-        
-        /// <summary>
-        /// Gets the command to detect system proxy
-        /// </summary>
         public IRelayCommand DetectSystemProxyCommand { get; }
         
         /// <summary>
@@ -180,7 +122,6 @@ namespace VoiceDictation.UI.ViewModels
             {
                 IsBusy = true;
                 
-                // Load proxies
                 await LoadProxiesAsync();
                 
                 StatusMessage = "Настройки загружены";
@@ -217,7 +158,6 @@ namespace VoiceDictation.UI.ViewModels
                     return;
                 }
                 
-                // Configure speech recognizer with API key
                 _speechRecognizer.ConfigureWithApiKey(ApiKey);
                 
                 StatusMessage = "API ключ сохранен";
@@ -245,7 +185,6 @@ namespace VoiceDictation.UI.ViewModels
                 IsBusy = true;
                 StatusMessage = "Тестирование API ключа...";
                 
-                // Configure speech recognizer with API key
                 _speechRecognizer.ConfigureWithApiKey(ApiKey);
                 
                 var result = await _speechRecognizer.RecognizeOnceAsync(5);

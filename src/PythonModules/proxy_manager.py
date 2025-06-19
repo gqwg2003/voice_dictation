@@ -16,12 +16,6 @@ class ProxyManager:
     """
     
     def __init__(self, config_file: Optional[str] = None):
-        """
-        Initialize the proxy manager
-        
-        Args:
-            config_file: Optional path to a proxy configuration file
-        """
         self.proxies: Dict[str, Dict[str, Any]] = {}
         self.current_proxy: Optional[Dict[str, str]] = None
         self.config_file = config_file
@@ -30,15 +24,6 @@ class ProxyManager:
             self.load_config(config_file)
     
     def load_config(self, config_file: str) -> bool:
-        """
-        Load proxy configuration from a JSON file
-        
-        Args:
-            config_file: Path to JSON configuration file
-            
-        Returns:
-            bool: True if loaded successfully, False otherwise
-        """
         try:
             with open(config_file, 'r', encoding='utf-8') as f:
                 config = json.load(f)
@@ -59,15 +44,6 @@ class ProxyManager:
             return False
     
     def save_config(self, config_file: Optional[str] = None) -> bool:
-        """
-        Save current proxy configuration to a JSON file
-        
-        Args:
-            config_file: Path to save the configuration (defaults to self.config_file)
-            
-        Returns:
-            bool: True if saved successfully, False otherwise
-        """
         if not config_file:
             config_file = self.config_file
             
@@ -92,19 +68,6 @@ class ProxyManager:
     
     def add_proxy(self, proxy_id: str, http_proxy: str, https_proxy: Optional[str] = None, 
                   username: Optional[str] = None, password: Optional[str] = None) -> bool:
-        """
-        Add a new proxy configuration
-        
-        Args:
-            proxy_id: Unique identifier for the proxy
-            http_proxy: HTTP proxy URL
-            https_proxy: HTTPS proxy URL (defaults to http_proxy if None)
-            username: Optional proxy username
-            password: Optional proxy password
-            
-        Returns:
-            bool: True if added successfully
-        """
         if not https_proxy:
             https_proxy = http_proxy
             
@@ -125,15 +88,6 @@ class ProxyManager:
         return True
     
     def remove_proxy(self, proxy_id: str) -> bool:
-        """
-        Remove a proxy configuration
-        
-        Args:
-            proxy_id: Identifier of the proxy to remove
-            
-        Returns:
-            bool: True if removed, False if not found
-        """
         if proxy_id in self.proxies:
             del self.proxies[proxy_id]
             logger.info(f"Removed proxy: {proxy_id}")
@@ -147,27 +101,9 @@ class ProxyManager:
             return False
     
     def get_proxy_list(self) -> List[Dict[str, Any]]:
-        """
-        Get list of available proxies
-        
-        Returns:
-            List of proxy configurations
-        """
         return list(self.proxies.values())
     
     def select_proxy(self, proxy_id: str) -> Dict[str, str]:
-        """
-        Select a proxy to use
-        
-        Args:
-            proxy_id: Identifier of the proxy to use
-            
-        Returns:
-            Dict: Proxy configuration in requests format
-            
-        Raises:
-            KeyError: If proxy_id is not found
-        """
         if proxy_id not in self.proxies:
             raise KeyError(f"Proxy not found: {proxy_id}")
             
@@ -192,12 +128,6 @@ class ProxyManager:
         return proxy_dict
     
     def get_current_proxy(self) -> Optional[Dict[str, str]]:
-        """
-        Get the currently selected proxy in a format ready for requests
-        
-        Returns:
-            Dict or None: Current proxy configuration or None if none selected
-        """
         if not self.current_proxy:
             return None
             
@@ -207,16 +137,6 @@ class ProxyManager:
         return self.select_proxy(self.current_proxy['id'])
     
     def test_proxy(self, proxy_id: Optional[str] = None, test_url: str = "https://www.google.com") -> Tuple[bool, str]:
-        """
-        Test if a proxy is working
-        
-        Args:
-            proxy_id: Proxy identifier to test (or current proxy if None)
-            test_url: URL to use for testing
-            
-        Returns:
-            Tuple of (success, message)
-        """
         try:
             if proxy_id:
                 proxy_dict = self.select_proxy(proxy_id)
@@ -244,12 +164,6 @@ class ProxyManager:
             return False, f"Error testing proxy: {str(e)}"
     
     def detect_system_proxy(self) -> Optional[Dict[str, str]]:
-        """
-        Detect system proxy settings
-        
-        Returns:
-            Dict or None: Detected proxy settings or None if not found
-        """
         if sys.platform.startswith('win'):
             proxy_settings = self._get_windows_proxy_settings()
             if proxy_settings:
@@ -279,12 +193,6 @@ class ProxyManager:
         return None
     
     def _get_windows_proxy_settings(self) -> Optional[Dict[str, Any]]:
-        """
-        Get proxy settings from Windows registry
-        
-        Returns:
-            Dict or None: Proxy settings
-        """
         try:
             import winreg
             
