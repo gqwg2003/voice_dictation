@@ -25,10 +25,19 @@ namespace VoiceDictation.UI.Views
         
         private async void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            await _viewModel.InitializeAsync();
+            try
+            {
+                await _viewModel.InitializeAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при инициализации настроек: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                
+                Close();
+            }
         }
         
-        private void SettingsWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void SettingsWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
             _viewModel.Cleanup();
         }

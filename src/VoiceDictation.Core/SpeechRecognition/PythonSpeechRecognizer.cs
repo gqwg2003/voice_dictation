@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Python.Runtime;
 
 namespace VoiceDictation.Core.SpeechRecognition
 {
@@ -16,17 +13,18 @@ namespace VoiceDictation.Core.SpeechRecognition
     public class PythonSpeechRecognizer : ISpeechRecognizer
     {
         private readonly ILogger<PythonSpeechRecognizer> _logger;
-        private readonly string _pythonModulesPath;
+        private readonly PythonRuntime _pythonRuntime;
+        private readonly RecognitionResultParser _resultParser;
+        private readonly ProxyConfigManager _proxyManager;
+        
         private bool _isListening;
         private string _language = "ru-RU";
         private string? _apiKey;
         private ProxySettings? _proxySettings;
         private CancellationTokenSource? _continuousRecognitionCts;
-        private bool _pythonInitialized;
         private bool _isDisposed;
         private dynamic? _pythonRecognizer;
-        private string? _pythonHome;
-        private readonly object _pythonLock = new object();
+        
         private readonly Dictionary<string, LanguageInfo> _availableLanguages;
         
         /// <inheritdoc/>
@@ -51,7 +49,7 @@ namespace VoiceDictation.Core.SpeechRecognition
                 {
                     _language = value;
                     
-                    if (_pythonInitialized && _pythonRecognizer != null)
+                    if (_pythonRuntime.IsInitialized && _pythonRecognizer != null)
                     {
                         UpdateRecognizerLanguage();
                     }
@@ -67,7 +65,9 @@ namespace VoiceDictation.Core.SpeechRecognition
         public PythonSpeechRecognizer(ILogger<PythonSpeechRecognizer> logger, string pythonModulesPath)
         {
             _logger = logger;
-            _pythonModulesPath = pythonModulesPath;
+            _pythonRuntime = new PythonRuntime(logger, pythonModulesPath);
+            _resultParser = new RecognitionResultParser(logger);
+            _proxyManager = new ProxyConfigManager(logger);
             
             _availableLanguages = new Dictionary<string, LanguageInfo>
             {
@@ -79,43 +79,13 @@ namespace VoiceDictation.Core.SpeechRecognition
                 { "es-ES", new LanguageInfo("es-ES", "Spanish") }
             };
             
-            _pythonHome = Environment.GetEnvironmentVariable("PYTHONHOME");
-            if (string.IsNullOrEmpty(_pythonHome))
-            {
-                var possiblePaths = new[]
-                {
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Python39"),
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Python310"),
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Python311"),
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Python312"),
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Python39"),
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Python310"),
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Python311"),
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Python312"),
-                    @"C:\Python39",
-                    @"C:\Python310",
-                    @"C:\Python311",
-                    @"C:\Python312"
-                };
-                
-                foreach (var path in possiblePaths)
-                {
-                    if (Directory.Exists(path) && File.Exists(Path.Combine(path, "python.exe")))
-                    {
-                        _pythonHome = path;
-                        _logger.LogInformation("Found Python installation at {PythonHome}", _pythonHome);
-                        break;
-                    }
-                }
-            }
-            
             try
             {
-                InitializePython();
+                InitializeRecognizer();
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to initialize Python runtime. Will attempt to initialize on first use.");
+                _logger.LogWarning(ex, "Failed to initialize speech recognizer. Will attempt to initialize on first use.");
             }
         }
         
@@ -124,7 +94,7 @@ namespace VoiceDictation.Core.SpeechRecognition
         {
             _apiKey = apiKey;
             
-            if (_pythonInitialized && _pythonRecognizer != null)
+            if (_pythonRuntime.IsInitialized && _pythonRecognizer != null)
             {
                 UpdateRecognizerConfig();
             }
@@ -135,7 +105,7 @@ namespace VoiceDictation.Core.SpeechRecognition
         {
             _proxySettings = proxySettings;
             
-            if (_pythonInitialized && _pythonRecognizer != null)
+            if (_pythonRuntime.IsInitialized && _pythonRecognizer != null)
             {
                 UpdateRecognizerConfig();
             }
@@ -150,7 +120,7 @@ namespace VoiceDictation.Core.SpeechRecognition
         /// <inheritdoc/>
         public async Task<SpeechRecognitionResult> RecognizeFromFileAsync(string filePath, CancellationToken cancellationToken = default)
         {
-            EnsurePythonInitialized();
+            EnsureInitialized();
             
             try
             {
@@ -171,7 +141,7 @@ namespace VoiceDictation.Core.SpeechRecognition
                             { "language", _language }
                         });
                         
-                        return ParseRecognitionResult(result);
+                        return _resultParser.ParseResult(result);
                     }
                     catch (Exception ex)
                     {
@@ -192,10 +162,15 @@ namespace VoiceDictation.Core.SpeechRecognition
         /// <inheritdoc/>
         public async Task<SpeechRecognitionResult> RecognizeOnceAsync(int maxDurationInSeconds = 30, CancellationToken cancellationToken = default)
         {
-            EnsurePythonInitialized();
+            EnsureInitialized();
             
             try
             {
+                if (maxDurationInSeconds < 1 || maxDurationInSeconds > 60)
+                {
+                    maxDurationInSeconds = 5;
+                }
+                
                 OnStatusChanged(SpeechRecognitionStatus.Listening, $"Listening for {maxDurationInSeconds} seconds...");
                 
                 var result = await Task.Run(() =>
@@ -208,7 +183,7 @@ namespace VoiceDictation.Core.SpeechRecognition
                             { "language", _language }
                         });
                         
-                        return ParseRecognitionResult(result);
+                        return _resultParser.ParseResult(result);
                     }
                     catch (Exception ex)
                     {
@@ -240,7 +215,7 @@ namespace VoiceDictation.Core.SpeechRecognition
             _isListening = true;
             OnStatusChanged(SpeechRecognitionStatus.Initializing, "Starting continuous recognition");
             
-            EnsurePythonInitialized();
+            EnsureInitialized();
             
             _continuousRecognitionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             
@@ -316,113 +291,45 @@ namespace VoiceDictation.Core.SpeechRecognition
             }
             
             _continuousRecognitionCts?.Dispose();
-            
-            ShutdownPython();
+            _pythonRecognizer = null;
+            _pythonRuntime.Dispose();
             
             _isDisposed = true;
         }
         
         /// <summary>
-        /// Initializes Python runtime and loads necessary modules
+        /// Initializes the speech recognizer
         /// </summary>
-        private void InitializePython()
+        private void InitializeRecognizer()
         {
-            if (_pythonInitialized)
+            try
             {
-                return;
-            }
-            
-            lock (_pythonLock)
-            {
-                if (_pythonInitialized)
-                {
-                    return;
-                }
+                _pythonRuntime.EnsureInitialized();
                 
-                try
+                var speechRecognitionModule = _pythonRuntime.ImportModule("speech_recognition");
+                _pythonRecognizer = speechRecognitionModule.SpeechRecognizer();
+                _pythonRecognizer.set_language(_language);
+                
+                if (_apiKey != null || _proxySettings != null)
                 {
-                    if (!string.IsNullOrEmpty(_pythonHome))
-                    {
-                        Runtime.PythonDLL = Path.Combine(_pythonHome, "python3.dll");
-                        if (!File.Exists(Runtime.PythonDLL))
-                        {
-                            Runtime.PythonDLL = Path.Combine(_pythonHome, "python310.dll");
-                        }
-                        if (!File.Exists(Runtime.PythonDLL))
-                        {
-                            Runtime.PythonDLL = Path.Combine(_pythonHome, "python39.dll");
-                        }
-                        
-                        PythonEngine.PythonHome = _pythonHome;
-                        _logger.LogInformation("Set Python home to: {PythonHome}", _pythonHome);
-                    }
-                    
-                    PythonEngine.Initialize();
-                    _logger.LogInformation("Python engine initialized");
-                    
-                    using (Py.GIL())
-                    {
-                        dynamic sys = Py.Import("sys");
-                        dynamic path = sys.path;
-                        path.append(new PyString(_pythonModulesPath));
-                        
-                        dynamic speechRecognitionModule = Py.Import("speech_recognition");
-                        
-                        _pythonRecognizer = speechRecognitionModule.SpeechRecognizer();
-                        
-                        _pythonRecognizer.set_language(_language);
-                    }
-                    
-                    _logger.LogInformation("Python runtime initialized successfully");
-                    _pythonInitialized = true;
-                    
-                    if (_apiKey != null || _proxySettings != null)
-                    {
-                        UpdateRecognizerConfig();
-                    }
+                    UpdateRecognizerConfig();
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error initializing Python runtime");
-                    throw new InvalidOperationException("Error initializing Python runtime", ex);
-                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error initializing speech recognizer");
+                throw;
             }
         }
         
         /// <summary>
-        /// Ensures that Python runtime is initialized
+        /// Ensures that the recognizer is initialized
         /// </summary>
-        private void EnsurePythonInitialized()
+        private void EnsureInitialized()
         {
-            if (!_pythonInitialized)
+            if (_pythonRecognizer == null)
             {
-                InitializePython();
-            }
-        }
-        
-        /// <summary>
-        /// Shuts down Python runtime
-        /// </summary>
-        private void ShutdownPython()
-        {
-            if (!_pythonInitialized)
-            {
-                return;
-            }
-            
-            lock (_pythonLock)
-            {
-                try
-                {
-                    _pythonRecognizer = null;
-                    PythonEngine.Shutdown();
-                    _pythonInitialized = false;
-                    _logger.LogInformation("Python runtime shutdown completed");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error shutting down Python runtime");
-                }
+                InitializeRecognizer();
             }
         }
         
@@ -431,80 +338,22 @@ namespace VoiceDictation.Core.SpeechRecognition
         /// </summary>
         private string ExecutePythonScript(string functionName, Dictionary<string, object> parameters)
         {
-            if (_pythonRecognizer == null || !_pythonInitialized)
+            if (_pythonRecognizer == null)
             {
                 throw new InvalidOperationException("Python recognizer is not initialized");
             }
             
             try
             {
-                using (Py.GIL())
-                {
-                    var method = _pythonRecognizer.GetAttr(functionName);
-                    
-                    var kwargs = new PyDict();
-                    foreach (var param in parameters)
-                    {
-                        kwargs[param.Key.ToPython()] = param.Value.ToPython();
-                    }
-                    
-                    var result = method.Invoke(kwargs);
-                    
-                    var resultStr = result.ToString();
-                    return resultStr;
-                }
+                return _pythonRuntime.ExecutePythonFunction(_pythonRecognizer, functionName, parameters);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error executing Python script {FunctionName}", functionName);
                 
-                if (functionName == "recognize_from_microphone" || functionName == "recognize_from_file")
-                {
-                    var language = parameters.ContainsKey("language") ? parameters["language"].ToString() : _language;
-                    
-                    string recognizedText;
-                    if (language.StartsWith("ru", StringComparison.OrdinalIgnoreCase))
-                    {
-                        recognizedText = "Это тестовый текст для распознавания речи.";
-                    }
-                    else if (language.StartsWith("fr", StringComparison.OrdinalIgnoreCase))
-                    {
-                        recognizedText = "C'est un texte de test pour la reconnaissance vocale.";
-                    }
-                    else if (language.StartsWith("de", StringComparison.OrdinalIgnoreCase))
-                    {
-                        recognizedText = "Dies ist ein Testtext für die Spracherkennung.";
-                    }
-                    else if (language.StartsWith("es", StringComparison.OrdinalIgnoreCase))
-                    {
-                        recognizedText = "Este es un texto de prueba para el reconocimiento de voz.";
-                    }
-                    else
-                    {
-                        recognizedText = "This is a test text for speech recognition.";
-                    }
-                    
-                    var simulatedResult = new
-                    {
-                        text = recognizedText,
-                        confidence = 0.95f,
-                        language = language
-                    };
-                    
-                    return JsonConvert.SerializeObject(simulatedResult);
-                }
-                else if (functionName == "set_language")
-                {
-                    _logger.LogInformation("Set language to: {Language}", parameters["language"]);
-                    return JsonConvert.SerializeObject(new { success = true });
-                }
-                else if (functionName == "update_config")
-                {
-                    _logger.LogInformation("Updated configuration");
-                    return JsonConvert.SerializeObject(new { success = true });
-                }
-                
-                return "{}";
+                // Return simulated results for testing purposes
+                return _resultParser.CreateSimulatedResult(functionName, 
+                    parameters.ContainsKey("language") ? parameters["language"].ToString() : _language);
             }
         }
         
@@ -513,28 +362,21 @@ namespace VoiceDictation.Core.SpeechRecognition
         /// </summary>
         private void UpdateRecognizerLanguage()
         {
-            if (_pythonRecognizer == null || !_pythonInitialized)
+            if (_pythonRecognizer == null)
             {
                 return;
             }
             
             try
             {
-                using (Py.GIL())
-                {
-                    _pythonRecognizer.set_language(_language);
-                }
+                _pythonRuntime.ExecutePythonFunction(_pythonRecognizer, "set_language", 
+                    new Dictionary<string, object> { { "language", _language } });
                 
                 _logger.LogInformation("Updated Python recognizer language to {Language}", _language);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating Python recognizer language");
-                
-                ExecutePythonScript("set_language", new Dictionary<string, object>
-                {
-                    { "language", _language }
-                });
             }
         }
         
@@ -543,148 +385,27 @@ namespace VoiceDictation.Core.SpeechRecognition
         /// </summary>
         private void UpdateRecognizerConfig()
         {
-            if (_pythonRecognizer == null || !_pythonInitialized)
+            if (_pythonRecognizer == null)
             {
                 return;
             }
             
             try
             {
-                var configParams = new Dictionary<string, object>();
+                var configParams = _proxyManager.CreateConfigDictionary(_apiKey, _proxySettings);
                 
-                if (_apiKey != null)
+                if (configParams.Count > 0)
                 {
-                    configParams["apiKey"] = _apiKey;
+                    _pythonRuntime.ExecutePythonFunction(_pythonRecognizer, "update_config", configParams);
+                    
+                    _logger.LogInformation("Updated Python recognizer configuration: API key: {ApiKeyStatus}, Proxy: {ProxyStatus}",
+                        _apiKey != null ? "Set" : "Not set",
+                        _proxySettings != null ? "Set" : "Not set");
                 }
-                
-                if (_proxySettings != null)
-                {
-                    var proxyDict = new Dictionary<string, string>();
-                    
-                    if (!string.IsNullOrEmpty(_proxySettings.HttpProxy))
-                    {
-                        proxyDict["http"] = _proxySettings.HttpProxy;
-                    }
-                    
-                    if (!string.IsNullOrEmpty(_proxySettings.HttpsProxy))
-                    {
-                        proxyDict["https"] = _proxySettings.HttpsProxy;
-                    }
-                    
-                    if (!string.IsNullOrEmpty(_proxySettings.Username) && !string.IsNullOrEmpty(_proxySettings.Password))
-                    {
-                        foreach (var key in proxyDict.Keys.ToList())
-                        {
-                            var url = proxyDict[key];
-                            if (!string.IsNullOrEmpty(url))
-                            {
-                                if (url.Contains("//") && !url.Contains("@"))
-                                {
-                                    var parts = url.Split(new[] { "//" }, 2, StringSplitOptions.None);
-                                    proxyDict[key] = $"{parts[0]}//{_proxySettings.Username}:{_proxySettings.Password}@{parts[1]}";
-                                }
-                            }
-                        }
-                    }
-                    
-                    configParams["proxy"] = proxyDict;
-                }
-                
-                using (Py.GIL())
-                {
-                    var kwargs = new PyDict();
-                    foreach (var param in configParams)
-                    {
-                        if (param.Value is Dictionary<string, string> dict)
-                        {
-                            var pyDict = new PyDict();
-                            foreach (var kvp in dict)
-                            {
-                                pyDict[kvp.Key.ToPython()] = kvp.Value.ToPython();
-                            }
-                            kwargs[param.Key.ToPython()] = pyDict;
-                        }
-                        else
-                        {
-                            kwargs[param.Key.ToPython()] = param.Value.ToPython();
-                        }
-                    }
-                    
-                    _pythonRecognizer.update_config(kwargs);
-                }
-                
-                _logger.LogInformation("Updated Python recognizer configuration: API key: {ApiKeyStatus}, Proxy: {ProxyStatus}",
-                    _apiKey != null ? "Set" : "Not set",
-                    _proxySettings != null ? "Set" : "Not set");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating Python recognizer configuration");
-                
-                var configParams = new Dictionary<string, object>();
-                
-                if (_apiKey != null)
-                {
-                    configParams["apiKey"] = _apiKey;
-                }
-                
-                if (_proxySettings != null)
-                {
-                    var proxyDict = new Dictionary<string, string>();
-                    
-                    if (!string.IsNullOrEmpty(_proxySettings.HttpProxy))
-                    {
-                        proxyDict["http"] = _proxySettings.HttpProxy;
-                    }
-                    
-                    if (!string.IsNullOrEmpty(_proxySettings.HttpsProxy))
-                    {
-                        proxyDict["https"] = _proxySettings.HttpsProxy;
-                    }
-                    
-                    configParams["proxy"] = proxyDict;
-                }
-                
-                ExecutePythonScript("update_config", configParams);
-            }
-        }
-        
-        /// <summary>
-        /// Parses recognition result from Python object
-        /// </summary>
-        private SpeechRecognitionResult ParseRecognitionResult(string result)
-        {
-            try
-            {
-                var parsedResult = JsonConvert.DeserializeObject<Dictionary<string, object>>(result);
-                
-                if (parsedResult != null)
-                {
-                    if (parsedResult.ContainsKey("error"))
-                    {
-                        string errorMessage = parsedResult["error"].ToString() ?? "Unknown error";
-                        string language = parsedResult.ContainsKey("language") ? parsedResult["language"].ToString() ?? "" : "";
-                        
-                        return new SpeechRecognitionResult(errorMessage, language);
-                    }
-                    else if (parsedResult.ContainsKey("text"))
-                    {
-                        string text = parsedResult["text"].ToString() ?? "";
-                        float confidence = parsedResult.ContainsKey("confidence") ? 
-                            Convert.ToSingle(parsedResult["confidence"]) : 0.0f;
-                        string language = parsedResult.ContainsKey("language") ? 
-                            parsedResult["language"].ToString() ?? "" : "";
-                        
-                        return new SpeechRecognitionResult(text, confidence, language);
-                    }
-                }
-                
-                return new SpeechRecognitionResult("Failed to parse recognition result");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error parsing recognition result");
-                return new SpeechRecognitionResult($"Error parsing recognition result: {ex.Message}");
             }
         }
         

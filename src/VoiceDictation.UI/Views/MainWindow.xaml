@@ -42,6 +42,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
         <!-- Header with title -->
@@ -92,6 +93,16 @@
                                 <TextBlock Text="Остановить" Margin="8,0,0,0" />
                             </StackPanel>
                         </Button>
+                        <Button Command="{Binding ProcessAudioFileCommand}" 
+                                ToolTip="Распознать аудио файл" 
+                                Style="{StaticResource MaterialDesignRaisedButton}" 
+                                materialDesign:ButtonAssist.CornerRadius="4"
+                                Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="FileMusic" Width="20" Height="20" />
+                                <TextBlock Text="Распознать файл" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </Button>
                         <Separator Style="{StaticResource MaterialDesignDarkSeparator}" Margin="8,0" />
                         <Button Command="{Binding LoadTextCommand}" 
                                 ToolTip="Загрузить текст" 
@@ -114,6 +125,16 @@
                             </StackPanel>
                         </Button>
                         <Separator Style="{StaticResource MaterialDesignDarkSeparator}" Margin="8,0" />
+                        <Button Command="{Binding FormatTextCommand}" 
+                                ToolTip="Форматировать текст" 
+                                Style="{StaticResource MaterialDesignOutlinedButton}" 
+                                materialDesign:ButtonAssist.CornerRadius="4"
+                                Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="FormatLetterCase" Width="20" Height="20" />
+                                <TextBlock Text="Форматировать" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </Button>
                         <Button Command="{Binding ClearTextCommand}" 
                                 ToolTip="Очистить" 
                                 Style="{StaticResource MaterialDesignOutlinedButton}" 
@@ -163,8 +184,59 @@
             </Grid>
         </materialDesign:Card>
         
-        <!-- Status area -->
+        <!-- Audio tools -->
         <materialDesign:Card Grid.Row="3" Margin="16,0,16,16" Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth1" BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <TextBlock Grid.Row="0" Text="Инструменты работы с аудио" Style="{StaticResource MaterialDesignSubtitle2TextBlock}" Margin="0,0,0,8"/>
+                
+                <WrapPanel Grid.Row="1" Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                        <TextBlock Text="Длительность записи:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <ComboBox SelectedValue="{Binding RecordingDuration}" Width="80">
+                            <ComboBoxItem Content="5" />
+                            <ComboBoxItem Content="10" />
+                            <ComboBoxItem Content="15" />
+                            <ComboBoxItem Content="20" />
+                            <ComboBoxItem Content="30" />
+                        </ComboBox>
+                        <TextBlock Text="сек" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                    </StackPanel>
+                    
+                    <Button Command="{Binding ExportAudioCommand}" 
+                            ToolTip="Экспортировать аудио" 
+                            Style="{StaticResource MaterialDesignFlatButton}" 
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Export" Width="20" Height="20"/>
+                            <TextBlock Text="Экспорт аудио" Margin="4,0,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    
+                    <Button Command="{Binding NormalizeAudioCommand}" 
+                            ToolTip="Нормализовать громкость" 
+                            Style="{StaticResource MaterialDesignFlatButton}">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="VolumeHigh" Width="20" Height="20"/>
+                            <TextBlock Text="Нормализация" Margin="4,0,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    
+                    <StackPanel Orientation="Horizontal" Margin="16,0,0,0">
+                        <CheckBox IsChecked="{Binding AutoFormatting}" Content="Автоформатирование" Margin="0,0,16,0"/>
+                        <CheckBox IsChecked="{Binding AutoTransliterate}" Content="Транслитерация" Margin="0,0,16,0"/>
+                        <CheckBox IsChecked="{Binding AutoCapitalization}" Content="Автоматические заглавные буквы"/>
+                    </StackPanel>
+                </WrapPanel>
+            </Grid>
+        </materialDesign:Card>
+        
+        <!-- Status area -->
+        <materialDesign:Card Grid.Row="4" Margin="16,0,16,16" Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth1" BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
             <StackPanel>
                 <TextBlock Text="{Binding StatusMessage}" Margin="0,0,0,8" Style="{StaticResource MaterialDesignBody1TextBlock}"/>
                 <Grid>
@@ -179,7 +251,7 @@
         </materialDesign:Card>
         
         <!-- Hot key area -->
-        <materialDesign:Card Grid.Row="4" Margin="16,0,16,16" Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth1" Background="{DynamicResource MaterialDesignBackground}" BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
+        <materialDesign:Card Grid.Row="5" Margin="16,0,16,16" Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth1" Background="{DynamicResource MaterialDesignBackground}" BorderThickness="1" BorderBrush="{DynamicResource MaterialDesignDivider}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>

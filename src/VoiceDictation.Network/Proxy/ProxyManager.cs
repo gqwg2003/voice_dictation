@@ -40,7 +40,8 @@ namespace VoiceDictation.Network.Proxy
         
         public async Task<IEnumerable<ProxyConfig>> GetProxyListAsync()
         {
-            return await Task.FromResult(_proxies.Values);
+            await Task.CompletedTask;
+            return _proxies.Values;
         }
         
         public async Task<bool> AddProxyAsync(ProxyConfig config)
@@ -250,98 +251,114 @@ namespace VoiceDictation.Network.Proxy
         {
             try
             {
-                _logger.LogInformation("Detecting system proxy settings");
+                var proxyUrl = GetWindowsSystemProxy();
                 
-                string? httpProxy = null;
-                string? httpsProxy = null;
-                
-                httpProxy = Environment.GetEnvironmentVariable("HTTP_PROXY") ?? Environment.GetEnvironmentVariable("http_proxy");
-                httpsProxy = Environment.GetEnvironmentVariable("HTTPS_PROXY") ?? Environment.GetEnvironmentVariable("https_proxy");
-                
-                if (string.IsNullOrEmpty(httpProxy))
+                if (string.IsNullOrEmpty(proxyUrl))
                 {
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    {
-                        httpProxy = GetWindowsSystemProxy();
-                    }
-                    
-                    if (string.IsNullOrEmpty(httpProxy) && WebRequest.DefaultWebProxy != null)
-                    {
-                        var defaultProxy = WebRequest.DefaultWebProxy;
-                        
-                        httpProxy = defaultProxy.GetProxy(new Uri("http://example.com")).ToString();
-                        
-                        if (httpProxy == "http://example.com/")
-                        {
-                            httpProxy = null;
-                        }
-                    }
+                    return null;
                 }
                 
-                if (!string.IsNullOrEmpty(httpProxy))
+                var systemProxyId = "system";
+                var systemProxy = new ProxyConfig
                 {
-                    var systemProxy = new ProxyConfig
+                    Id = systemProxyId,
+                    Name = "System Proxy",
+                    HttpProxy = proxyUrl,
+                    HttpsProxy = proxyUrl,
+                    IsSystemProxy = true
+                };
+                
+                if (_proxies.ContainsKey(systemProxyId))
+                {
+                    if (_proxies[systemProxyId] != null) 
                     {
-                        Id = "system",
-                        Name = "System Proxy",
-                        HttpProxy = httpProxy,
-                        HttpsProxy = httpsProxy ?? httpProxy,
-                        IsSystemProxy = true
-                    };
-                    
-                    await AddProxyAsync(systemProxy);
-                    
-                    return systemProxy;
+                        _proxies[systemProxyId].HttpProxy = proxyUrl;
+                        _proxies[systemProxyId].HttpsProxy = proxyUrl;
+                    }
+                    else 
+                    {
+                        _proxies[systemProxyId] = systemProxy;
+                    }
+                }
+                else
+                {
+                    _proxies[systemProxyId] = systemProxy;
                 }
                 
-                return null;
+                _logger.LogInformation("Detected system proxy: {ProxyUrl}", proxyUrl);
+                
+                return systemProxy;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error detecting system proxy settings");
+                _logger.LogError(ex, "Error detecting system proxy");
                 return null;
             }
         }
         
-        public async Task<bool> LoadConfigAsync(string filePath)
+        /// <summary>
+        /// Loads proxy configurations
+        /// </summary>
+        public async Task<IEnumerable<ProxyConfig>> LoadProxiesAsync()
         {
             try
             {
-                if (!File.Exists(filePath))
+                _logger.LogInformation("Loading proxy configurations");
+                
+                var loadTask = Task.Run(() =>
                 {
-                    _logger.LogWarning("Proxy configuration file not found: {FilePath}", filePath);
-                    return false;
+                    string configPath = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                        "VoiceDictation",
+                        "proxy_config.json");
+                    
+                    if (!File.Exists(configPath))
+                    {
+                        return new List<ProxyConfig>();
+                    }
+                    
+                    string json = File.ReadAllText(configPath);
+                    
+                    if (string.IsNullOrEmpty(json))
+                    {
+                        return new List<ProxyConfig>();
+                    }
+                    
+                    var config = JsonConvert.DeserializeObject<ProxyConfigFile>(json);
+                    
+                    return config?.Proxies ?? new List<ProxyConfig>();
+                });
+                
+                var timeoutTask = Task.Delay(3000);
+                
+                var completedTask = await Task.WhenAny(loadTask, timeoutTask);
+                
+                if (completedTask == timeoutTask)
+                {
+                    OnStatusChanged(ProxyStatus.Error, null, "Загрузка прокси-конфигураций заняла слишком много времени");
+                    return new List<ProxyConfig>();
                 }
                 
-                var json = await File.ReadAllTextAsync(filePath);
-                var config = JsonConvert.DeserializeObject<ProxyConfigFile>(json);
-                
-                if (config == null || config.Proxies == null)
-                {
-                    _logger.LogWarning("Invalid proxy configuration file: {FilePath}", filePath);
-                    return false;
-                }
+                var proxies = await loadTask;
                 
                 _proxies.Clear();
-                
-                foreach (var proxy in config.Proxies)
+                foreach (var proxy in proxies)
                 {
-                    if (!string.IsNullOrEmpty(proxy.Id) && !string.IsNullOrEmpty(proxy.HttpProxy))
+                    if (!string.IsNullOrEmpty(proxy.Id))
                     {
                         _proxies[proxy.Id] = proxy;
                     }
                 }
                 
-                _configFilePath = filePath;
+                OnStatusChanged(ProxyStatus.Inactive, null, $"Загружено прокси-конфигураций: {_proxies.Count}");
                 
-                _logger.LogInformation("Loaded {ProxyCount} proxies from configuration file", _proxies.Count);
-                
-                return true;
+                return _proxies.Values;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading proxy configuration from {FilePath}", filePath);
-                return false;
+                _logger.LogError(ex, "Error loading proxy configurations");
+                OnStatusChanged(ProxyStatus.Error, null, $"Ошибка загрузки прокси-конфигураций: {ex.Message}");
+                throw;
             }
         }
         
@@ -513,36 +530,82 @@ namespace VoiceDictation.Network.Proxy
                 _logger.LogError(ex, "Error notifying system about proxy changes");
             }
         }
-        
-        /// <summary>
-        /// Native methods for Windows API
-        /// </summary>
+
         private static class NativeMethods
         {
             [System.Runtime.InteropServices.DllImport("wininet.dll", SetLastError = true)]
             public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntPtr lpBuffer, int dwBufferLength);
         }
         
-        /// <summary>
-        /// Raises the StatusChanged event
-        /// </summary>
-        /// <param name="status">Status</param>
-        /// <param name="proxy">Proxy configuration</param>
-        /// <param name="message">Message</param>
         private void OnStatusChanged(ProxyStatus status, ProxyConfig? proxy = null, string? message = null)
         {
             StatusChanged?.Invoke(this, new ProxyStatusChangedEventArgs(status, proxy, message));
         }
-        
-        /// <summary>
-        /// Class for proxy configuration file
-        /// </summary>
+
         private class ProxyConfigFile
         {
-            /// <summary>
-            /// Gets or sets the list of proxy configurations
-            /// </summary>
             public List<ProxyConfig> Proxies { get; set; } = new List<ProxyConfig>();
+        }
+
+        /// <summary>
+        /// Loads proxy configuration from file
+        /// </summary>
+        /// <param name="filePath">Path to the configuration file</param>
+        /// <returns>True if successful, false otherwise</returns>
+        public async Task<bool> LoadConfigAsync(string filePath)
+        {
+            try
+            {
+                if (!File.Exists(filePath))
+                {
+                    _logger.LogWarning("Proxy configuration file not found: {FilePath}", filePath);
+                    return false;
+                }
+                
+                // Добавляем таймаут для защиты от зависаний
+                var loadFileTask = Task.Run(async () => await File.ReadAllTextAsync(filePath));
+                var timeoutTask = Task.Delay(5000); // 5 секунд таймаут
+                
+                var completedTask = await Task.WhenAny(loadFileTask, timeoutTask);
+                
+                if (completedTask == timeoutTask)
+                {
+                    _logger.LogWarning("Loading proxy configuration file timed out: {FilePath}", filePath);
+                    OnStatusChanged(ProxyStatus.Error, null, "Загрузка конфигурации прокси превысила таймаут");
+                    return false;
+                }
+                
+                var json = await loadFileTask;
+                
+                var config = JsonConvert.DeserializeObject<ProxyConfigFile>(json);
+                
+                if (config == null || config.Proxies == null)
+                {
+                    _logger.LogWarning("Invalid proxy configuration file: {FilePath}", filePath);
+                    return false;
+                }
+                
+                _proxies.Clear();
+                
+                foreach (var proxy in config.Proxies)
+                {
+                    if (!string.IsNullOrEmpty(proxy.Id) && !string.IsNullOrEmpty(proxy.HttpProxy))
+                    {
+                        _proxies[proxy.Id] = proxy;
+                    }
+                }
+                
+                _configFilePath = filePath;
+                
+                _logger.LogInformation("Loaded {ProxyCount} proxies from configuration file", _proxies.Count);
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading proxy configuration from {FilePath}", filePath);
+                return false;
+            }
         }
     }
 } 

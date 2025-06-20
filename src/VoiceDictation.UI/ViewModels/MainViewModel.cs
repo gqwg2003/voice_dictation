@@ -2,16 +2,16 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Input;
 using VoiceDictation.Core.SpeechRecognition;
+using VoiceDictation.Core.Utils;
+using VoiceDictation.UI.Utils;
+using VoiceDictation.UI.Views;
+using Microsoft.Extensions.Logging.Abstractions;
+using VoiceDictation.Network.Proxy;
 
 namespace VoiceDictation.UI.ViewModels
 {
@@ -23,13 +23,13 @@ namespace VoiceDictation.UI.ViewModels
         private readonly ILogger<MainViewModel> _logger;
         private readonly ISpeechRecognizer _speechRecognizer;
         
+        private readonly RecognitionManagerViewModel _recognitionManager;
+        private readonly TextOperationsViewModel _textOperations;
+        private readonly AudioOperationsViewModel _audioOperations;
+        
         private string _recognizedText = string.Empty;
         private string _statusMessage = "Готов к работе";
         private double _recognitionProgress;
-        private string _recordingTimeDisplay = "00:00";
-        private bool _isRecording;
-        private DateTime _recordingStartTime;
-        private System.Timers.Timer? _recordingTimer;
         
         public string RecognizedText
         {
@@ -49,28 +49,55 @@ namespace VoiceDictation.UI.ViewModels
             set => SetProperty(ref _recognitionProgress, value);
         }
         
+        // Properties delegated to _recognitionManager
         public string RecordingTimeDisplay
         {
-            get => _recordingTimeDisplay;
-            set => SetProperty(ref _recordingTimeDisplay, value);
+            get => _recognitionManager.RecordingTimeDisplay;
+            set => _recognitionManager.RecordingTimeDisplay = value;
         }
         
-        public ObservableCollection<LanguageViewModel> AvailableLanguages { get; } = new ObservableCollection<LanguageViewModel>();
+        public int RecordingDuration
+        {
+            get => _recognitionManager.RecordingDuration;
+            set => _recognitionManager.RecordingDuration = value;
+        }
         
-        private LanguageViewModel? _selectedLanguage;
+        // Properties delegated to _textOperations
+        public bool AutoCapitalization
+        {
+            get => _textOperations.AutoCapitalization;
+            set => _textOperations.AutoCapitalization = value;
+        }
+        
+        public bool AutoFormatting
+        {
+            get => _textOperations.AutoFormatting;
+            set => _textOperations.AutoFormatting = value;
+        }
+        
+        public bool AutoTransliterate
+        {
+            get => _textOperations.AutoTransliterate;
+            set => _textOperations.AutoTransliterate = value;
+        }
+        
+        // Properties delegated to _audioOperations
+        public string CurrentAudioFilePath
+        {
+            get => _audioOperations.CurrentAudioFilePath;
+            private set => _audioOperations.CurrentAudioFilePath = value;
+        }
+        
+        // Collections delegated to _recognitionManager
+        public System.Collections.ObjectModel.ObservableCollection<LanguageViewModel> AvailableLanguages => _recognitionManager.AvailableLanguages;
         
         public LanguageViewModel? SelectedLanguage
         {
-            get => _selectedLanguage;
-            set
-            {
-                if (SetProperty(ref _selectedLanguage, value) && value != null)
-                {
-                    _speechRecognizer.Language = value.Code;
+            get => _recognitionManager.SelectedLanguage;
+            set => _recognitionManager.SelectedLanguage = value;
                 }
-            }
-        }
         
+        // Commands
         public IRelayCommand StartRecognitionCommand { get; }
         public IRelayCommand StopRecognitionCommand { get; }
         public IRelayCommand LoadTextCommand { get; }
@@ -78,27 +105,49 @@ namespace VoiceDictation.UI.ViewModels
         public IRelayCommand ClearTextCommand { get; }
         public IRelayCommand OpenSettingsCommand { get; }
         public IRelayCommand OpenHelpCommand { get; }
+        public IRelayCommand ProcessAudioFileCommand { get; }
+        public IRelayCommand FormatTextCommand { get; }
+        public IRelayCommand ExportAudioCommand { get; }
+        public IRelayCommand NormalizeAudioCommand { get; }
         
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MainViewModel"/> class
-        /// </summary>
-        /// <param name="logger">The logger</param>
-        /// <param name="speechRecognizer">The speech recognizer</param>
         public MainViewModel(ILogger<MainViewModel> logger, ISpeechRecognizer speechRecognizer)
         {
             _logger = logger;
             _speechRecognizer = speechRecognizer;
-            
+
+            _recognitionManager = new RecognitionManagerViewModel(
+                logger, 
+                speechRecognizer, 
+                msg => StatusMessage = msg,
+                progress => RecognitionProgress = progress);
+                
+            _textOperations = new TextOperationsViewModel(
+                logger,
+                speechRecognizer,
+                msg => StatusMessage = msg,
+                () => RecognizedText,
+                text => RecognizedText = text);
+                
+            _audioOperations = new AudioOperationsViewModel(
+                logger,
+                msg => StatusMessage = msg);
+
+            _recognitionManager.NotifyCommandsCanExecuteChanged += () => {
+                ((RelayCommand)StartRecognitionCommand).NotifyCanExecuteChanged();
+                ((RelayCommand)StopRecognitionCommand).NotifyCanExecuteChanged();
+            };
+
             StartRecognitionCommand = new RelayCommand(StartRecognition, CanStartRecognition);
             StopRecognitionCommand = new RelayCommand(StopRecognition, CanStopRecognition);
-            LoadTextCommand = new RelayCommand(LoadText);
-            SaveTextCommand = new RelayCommand(SaveText);
-            ClearTextCommand = new RelayCommand(ClearText);
+            LoadTextCommand = new RelayCommand(_textOperations.LoadText);
+            SaveTextCommand = new RelayCommand(_textOperations.SaveText);
+            ClearTextCommand = new RelayCommand(_textOperations.ClearText);
             OpenSettingsCommand = new RelayCommand(OpenSettings);
             OpenHelpCommand = new RelayCommand(OpenHelp);
-            
-            _recordingTimer = new System.Timers.Timer(1000);
-            _recordingTimer.Elapsed += (s, e) => UpdateRecordingTime();
+            ProcessAudioFileCommand = new RelayCommand(ProcessAudioFile);
+            FormatTextCommand = new RelayCommand(_textOperations.FormatText);
+            ExportAudioCommand = new RelayCommand(_audioOperations.ExportAudio, _audioOperations.CanExportAudio);
+            NormalizeAudioCommand = new RelayCommand(_audioOperations.NormalizeAudio, _audioOperations.CanNormalizeAudio);
         }
         
         /// <summary>
@@ -109,17 +158,16 @@ namespace VoiceDictation.UI.ViewModels
         {
             try
             {
-                _speechRecognizer.SpeechRecognized += SpeechRecognizer_SpeechRecognized;
-                _speechRecognizer.SpeechError += SpeechRecognizer_SpeechError;
-                _speechRecognizer.StatusChanged += SpeechRecognizer_StatusChanged;
+                await Task.Yield();
                 
-                LoadAvailableLanguages();
-                
-                var defaultLanguage = AvailableLanguages.FirstOrDefault(l => l.Code == "ru-RU") ?? AvailableLanguages.FirstOrDefault();
-                if (defaultLanguage != null)
+                if (_speechRecognizer != null)
                 {
-                    SelectedLanguage = defaultLanguage;
+                    _speechRecognizer.SpeechRecognized += SpeechRecognizer_SpeechRecognized;
+                    _speechRecognizer.SpeechError += SpeechRecognizer_SpeechError;
+                    _speechRecognizer.StatusChanged += SpeechRecognizer_StatusChanged;
                 }
+                
+                _recognitionManager?.LoadAvailableLanguages();
                 
                 StatusMessage = "Готов к работе";
             }
@@ -135,186 +183,49 @@ namespace VoiceDictation.UI.ViewModels
         /// </summary>
         public void Cleanup()
         {
-            if (_isRecording)
+            if (_speechRecognizer != null)
             {
-                StopRecognition();
+                _speechRecognizer.SpeechRecognized -= SpeechRecognizer_SpeechRecognized;
+                _speechRecognizer.SpeechError -= SpeechRecognizer_SpeechError;
+                _speechRecognizer.StatusChanged -= SpeechRecognizer_StatusChanged;
+                
+                _speechRecognizer.Dispose();
             }
             
-            _speechRecognizer.SpeechRecognized -= SpeechRecognizer_SpeechRecognized;
-            _speechRecognizer.SpeechError -= SpeechRecognizer_SpeechError;
-            _speechRecognizer.StatusChanged -= SpeechRecognizer_StatusChanged;
-            
-            _recordingTimer?.Dispose();
-            _recordingTimer = null;
-            
-            _speechRecognizer.Dispose();
+            _recognitionManager?.Cleanup();
         }
         
-        /// <summary>
-        /// Loads the available languages for speech recognition
-        /// </summary>
-        private void LoadAvailableLanguages()
+        private void StartRecognition()
         {
-            AvailableLanguages.Clear();
-            
-            try
-            {
-                foreach (var language in _speechRecognizer.GetAvailableLanguages())
-                {
-                    AvailableLanguages.Add(new LanguageViewModel
-                    {
-                        Code = language.Code,
-                        DisplayName = language.DisplayName
-                    });
-                }
-                
-                _logger.LogInformation("Loaded {Count} languages", AvailableLanguages.Count);
+            _ = _recognitionManager.StartRecognitionAsync();
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error loading available languages");
-                StatusMessage = $"Ошибка загрузки языков: {ex.Message}";
-                
-                AvailableLanguages.Add(new LanguageViewModel { Code = "ru-RU", DisplayName = "Русский" });
-                AvailableLanguages.Add(new LanguageViewModel { Code = "en-US", DisplayName = "Английский (США)" });
-            }
-        }
         
-        /// <summary>
-        /// Starts speech recognition
-        /// </summary>
-        private async void StartRecognition()
+        private void StopRecognition()
         {
-            try
-            {
-                StatusMessage = "Начинаем распознавание...";
-                RecognitionProgress = 0;
-                _isRecording = true;
-                _recordingStartTime = DateTime.Now;
-                
-                _recordingTimer?.Start();
-                
-                await _speechRecognizer.StartContinuousRecognitionAsync();
-                
-                UpdateCommandsCanExecute();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error starting recognition");
-                StatusMessage = $"Ошибка запуска распознавания: {ex.Message}";
-                _isRecording = false;
-                _recordingTimer?.Stop();
-            }
+            _ = _recognitionManager.StopRecognitionAsync();
         }
         
-        /// <summary>
-        /// Stops speech recognition
-        /// </summary>
-        private async void StopRecognition()
-        {
-            try
-            {
-                _recordingTimer?.Stop();
-                
-                await _speechRecognizer.StopContinuousRecognitionAsync();
-                
-                _isRecording = false;
-                StatusMessage = "Распознавание остановлено";
-                
-                UpdateCommandsCanExecute();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error stopping recognition");
-                StatusMessage = $"Ошибка остановки распознавания: {ex.Message}";
-            }
-        }
+        private bool CanStartRecognition() => _recognitionManager.CanStartRecognition();
         
-        /// <summary>
-        /// Loads text from a file
-        /// </summary>
-        private void LoadText()
-        {
-            try
-            {
-                var openFileDialog = new OpenFileDialog
-                {
-                    Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*",
-                    Title = "Открыть текстовый файл"
-                };
-                
-                if (openFileDialog.ShowDialog() == true)
-                {
-                    RecognizedText = File.ReadAllText(openFileDialog.FileName);
-                    StatusMessage = $"Текст загружен из файла: {Path.GetFileName(openFileDialog.FileName)}";
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error loading text from file");
-                StatusMessage = $"Ошибка загрузки файла: {ex.Message}";
-            }
-        }
+        private bool CanStopRecognition() => _recognitionManager.CanStopRecognition();
         
-        /// <summary>
-        /// Saves text to a file
-        /// </summary>
-        private void SaveText()
-        {
-            try
-            {
-                var saveFileDialog = new SaveFileDialog
-                {
-                    Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*",
-                    Title = "Сохранить текстовый файл"
-                };
-                
-                if (saveFileDialog.ShowDialog() == true)
-                {
-                    File.WriteAllText(saveFileDialog.FileName, RecognizedText);
-                    StatusMessage = $"Текст сохранен в файл: {Path.GetFileName(saveFileDialog.FileName)}";
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error saving text to file");
-                StatusMessage = $"Ошибка сохранения файла: {ex.Message}";
-            }
-        }
-        
-        /// <summary>
-        /// Clears the recognized text
-        /// </summary>
-        private void ClearText()
-        {
-            if (!string.IsNullOrEmpty(RecognizedText))
-            {
-                var result = MessageBox.Show("Вы уверены, что хотите очистить текст?", "Подтверждение", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                
-                if (result == MessageBoxResult.Yes)
-                {
-                    RecognizedText = string.Empty;
-                    StatusMessage = "Текст очищен";
-                }
-            }
-        }
-        
-        /// <summary>
-        /// Opens the settings window
-        /// </summary>
         private void OpenSettings()
         {
             try
-            {
-                var serviceProvider = ((App)Application.Current).ServiceProvider;
-                
-                var settingsViewModel = serviceProvider.GetRequiredService<SettingsViewModel>();
-                
-                var settingsWindow = new Views.SettingsWindow(settingsViewModel)
                 {
-                    Owner = Application.Current.MainWindow
-                };
+                var proxyManager = ((App)Application.Current).ServiceProvider.GetRequiredService<IProxyManager>();
                 
+                var loggerFactory = ((App)Application.Current).ServiceProvider.GetRequiredService<ILoggerFactory>();
+                var settingsLogger = loggerFactory.CreateLogger<SettingsViewModel>();
+                
+                var settingsWindow = new Views.SettingsWindow(
+                    new SettingsViewModel(settingsLogger, _speechRecognizer, proxyManager)
+                );
+                
+                settingsWindow.Owner = Application.Current.MainWindow;
+                settingsWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                
+                _logger.LogInformation("Opening settings window");
                 settingsWindow.ShowDialog();
             }
             catch (Exception ex)
@@ -324,132 +235,116 @@ namespace VoiceDictation.UI.ViewModels
             }
         }
         
-        /// <summary>
-        /// Opens the help window
-        /// </summary>
         private void OpenHelp()
         {
-            MessageBox.Show("Для начала записи нажмите кнопку с иконкой микрофона или используйте горячую клавишу Ctrl+Shift+R", "Справка", MessageBoxButton.OK, MessageBoxImage.Information);
+            UIHelpers.ShowInfoMessage(
+                "Для начала записи нажмите кнопку с иконкой микрофона или используйте горячую клавишу Ctrl+Shift+R", 
+                "Справка");
         }
         
-        /// <summary>
-        /// Updates the recording time display
-        /// </summary>
-        private void UpdateRecordingTime()
-        {
-            if (_isRecording)
-            {
-                var elapsed = DateTime.Now - _recordingStartTime;
-                
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    RecordingTimeDisplay = $"{elapsed.Minutes:00}:{elapsed.Seconds:00}";
-                });
-            }
-        }
-        
-        /// <summary>
-        /// Updates the CanExecute state of commands
-        /// </summary>
-        private void UpdateCommandsCanExecute()
-        {
-            ((RelayCommand)StartRecognitionCommand).NotifyCanExecuteChanged();
-            ((RelayCommand)StopRecognitionCommand).NotifyCanExecuteChanged();
-        }
-        
-        /// <summary>
-        /// Determines whether the StartRecognition command can execute
-        /// </summary>
-        /// <returns>True if the command can execute, otherwise false</returns>
-        private bool CanStartRecognition() => !_isRecording;
-        
-        /// <summary>
-        /// Determines whether the StopRecognition command can execute
-        /// </summary>
-        /// <returns>True if the command can execute, otherwise false</returns>
-        private bool CanStopRecognition() => _isRecording;
-        
-        /// <summary>
-        /// Handles the SpeechRecognized event
-        /// </summary>
         private void SpeechRecognizer_SpeechRecognized(object? sender, SpeechRecognizedEventArgs e)
         {
-            if (e.Result.IsSuccessful)
+            UIHelpers.SafeExecute(() =>
             {
-                if (!string.IsNullOrEmpty(RecognizedText))
-                {
-                    RecognizedText += " ";
-                }
-                
-                RecognizedText += e.Result.Text;
+                _textOperations.HandleRecognitionResult(e.Result);
                 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     StatusMessage = "Распознано: " + e.Result.Text;
                 });
-            }
+            }, _logger, "Error handling speech recognized event");
         }
         
-        /// <summary>
-        /// Handles the SpeechError event
-        /// </summary>
         private void SpeechRecognizer_SpeechError(object? sender, SpeechErrorEventArgs e)
         {
+            UIHelpers.SafeExecute(() =>
+            {
             Application.Current.Dispatcher.Invoke(() =>
             {
                 StatusMessage = $"Ошибка распознавания: {e.ErrorMessage}";
             });
+            }, _logger, "Error handling speech error event");
         }
         
-        /// <summary>
-        /// Handles the StatusChanged event
-        /// </summary>
         private void SpeechRecognizer_StatusChanged(object? sender, SpeechStatusChangedEventArgs e)
         {
+            UIHelpers.SafeExecute(() =>
+            {
             Application.Current.Dispatcher.Invoke(() =>
             {
                 switch (e.Status)
                 {
+                        case SpeechRecognitionStatus.Initializing:
+                            StatusMessage = "Инициализация...";
+                            break;
+                        case SpeechRecognitionStatus.Idle:
+                            StatusMessage = "Готов к работе";
+                            RecognitionProgress = 0;
+                            break;
                     case SpeechRecognitionStatus.Listening:
-                        RecognitionProgress = 25;
-                        StatusMessage = "Слушаю...";
-                        break;
-                    case SpeechRecognitionStatus.SpeechDetected:
-                        RecognitionProgress = 50;
-                        StatusMessage = "Речь обнаружена...";
+                            StatusMessage = $"Слушаю...";
                         break;
                     case SpeechRecognitionStatus.Processing:
-                        RecognitionProgress = 75;
                         StatusMessage = "Обработка...";
                         break;
                     case SpeechRecognitionStatus.Recognized:
-                        RecognitionProgress = 100;
+                            StatusMessage = "Распознано";
                         break;
                     case SpeechRecognitionStatus.Error:
-                        RecognitionProgress = 0;
-                        _recordingTimer?.Stop();
-                        _isRecording = false;
-                        UpdateCommandsCanExecute();
-                        break;
-                    case SpeechRecognitionStatus.Idle:
-                        RecognitionProgress = 0;
+                            StatusMessage = "Ошибка распознавания";
                         break;
                 }
+                });
+            }, _logger, "Error handling speech status changed event");
+        }
+        
+        private async void ProcessAudioFile()
+        {
+            await UIHelpers.SafeExecuteAsync(async () =>
+            {
+                string wavFilePath = _audioOperations.PreprocessAudioFile();
+                if (string.IsNullOrEmpty(wavFilePath))
+                    return;
                 
-                if (!string.IsNullOrEmpty(e.StatusDetails))
+                bool needsCleanup = wavFilePath != _audioOperations.CurrentAudioFilePath;
+                
+                try
                 {
-                    StatusMessage = e.StatusDetails;
+                    StatusMessage = $"Обрабатываю файл: {System.IO.Path.GetFileName(_audioOperations.CurrentAudioFilePath)}...";
+                    var result = await _speechRecognizer.RecognizeFromFileAsync(wavFilePath);
+                    
+                    if (result.IsSuccessful)
+                {
+                        string newText = _textOperations.ProcessRecognizedText(result.Text);
+                        
+                        if (!string.IsNullOrEmpty(RecognizedText))
+                        {
+                            RecognizedText += Environment.NewLine + Environment.NewLine + newText;
+                        }
+                        else
+                        {
+                            RecognizedText = newText;
+                        }
+                        
+                        StatusMessage = $"Файл распознан: {System.IO.Path.GetFileName(_audioOperations.CurrentAudioFilePath)}";
+                    }
+                    else
+                    {
+                        StatusMessage = $"Ошибка распознавания: {result.ErrorMessage}";
+                    }
                 }
+                finally
+                {
+                    if (needsCleanup && !string.IsNullOrEmpty(wavFilePath))
+                    {
+                        FileUtils.SafeDeleteFile(wavFilePath);
+                }
+                }
+            }, _logger, "Error processing audio file", message => StatusMessage = message, ex => 
+            {
+                UIHelpers.ShowErrorMessage(_logger, "Error processing audio file", ex,
+                    $"Ошибка обработки аудио файла: {ex.Message}");
             });
         }
-    }
-    
-    /// <summary>
-    /// View model for language information
-    /// </summary>
-    public class LanguageViewModel
-    {
-        public string Code { get; set; } = string.Empty;
-        public string DisplayName { get; set; } = string.Empty;
     }
 } 

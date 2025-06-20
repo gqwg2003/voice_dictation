@@ -1,15 +1,18 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
 using VoiceDictation.Core.SpeechRecognition;
 using VoiceDictation.Network.Proxy;
 using VoiceDictation.UI.Models;
+using System.IO;
 
 namespace VoiceDictation.UI.ViewModels
 {
@@ -150,9 +153,50 @@ namespace VoiceDictation.UI.ViewModels
             {
                 IsBusy = true;
                 
-                await LoadProxiesAsync();
+                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
                 
-                StatusMessage = "Настройки загружены";
+                var loadProxiesTask = Task.Run(async () => {
+                    try {
+                        var proxies = await _proxyManager.GetProxyListAsync();
+                        return proxies;
+                    }
+                    catch (Exception ex) {
+                        _logger.LogError(ex, "Error loading proxy list");
+                        return Array.Empty<ProxyConfig>();
+                    }
+                }, cts.Token);
+                
+                if (await Task.WhenAny(loadProxiesTask, Task.Delay(3000, cts.Token)) == loadProxiesTask)
+                {
+                    try
+                    {
+                        var proxies = await loadProxiesTask;
+                        
+                        Proxies.Clear();
+                        foreach (var proxy in proxies)
+                        {
+                            Proxies.Add(proxy);
+                        }
+                        
+                        if (_proxyManager.IsProxyActive && _proxyManager.CurrentProxy != null)
+                        {
+                            SelectedProxy = _proxyManager.CurrentProxy;
+                        }
+                        
+                        StatusMessage = $"Загружено {Proxies.Count} прокси";
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to process loaded proxies");
+                        StatusMessage = "Ошибка обработки прокси";
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("Loading proxies took too long, timeout reached");
+                    StatusMessage = "Загрузка прокси превысила таймаут";
+                    cts.Cancel();
+                }
             }
             catch (Exception ex)
             {
@@ -301,7 +345,6 @@ namespace VoiceDictation.UI.ViewModels
                 IsBusy = true;
                 StatusMessage = "Добавление прокси...";
                 
-                // Create new proxy config
                 var proxyConfig = new ProxyConfig
                 {
                     Id = Guid.NewGuid().ToString(),
@@ -312,7 +355,6 @@ namespace VoiceDictation.UI.ViewModels
                     Password = NewProxyPassword
                 };
                 
-                // Add to proxy manager
                 await _proxyManager.AddProxyAsync(proxyConfig);
                 
                 Proxies.Add(proxyConfig);
@@ -526,84 +568,103 @@ namespace VoiceDictation.UI.ViewModels
             {
                 return;
             }
-            
+
             try
             {
                 IsBusy = true;
                 StatusMessage = $"Переключение распознавателя на {recognizerType}...";
                 
-                // Get the service provider from the App class
-                var serviceProvider = ((App)Application.Current).ServiceProvider;
-                
-                // Get a new instance of the selected recognizer type
-                ISpeechRecognizer? newRecognizer = null;
-                
-                if (recognizerType == "Microsoft")
-                {
-                    // Get Microsoft recognizer
-                    newRecognizer = serviceProvider.GetServices<ISpeechRecognizer>()
-                        .FirstOrDefault(r => r.GetType().Name.Contains("Microsoft"));
-                }
-                else
-                {
-                    // Get Python recognizer
-                    newRecognizer = serviceProvider.GetServices<ISpeechRecognizer>()
-                        .FirstOrDefault(r => r.GetType().Name.Contains("Python"));
-                }
-                
-                if (newRecognizer == null)
-                {
-                    StatusMessage = $"Не удалось найти распознаватель типа {recognizerType}";
-                    return;
-                }
-                
-                // Configure the new recognizer with the same settings
-                if (!string.IsNullOrEmpty(ApiKey))
-                {
-                    newRecognizer.ConfigureWithApiKey(ApiKey);
-                }
-                
-                if (_proxyManager.IsProxyActive && _proxyManager.CurrentProxy != null)
-                {
-                    var proxySettings = new ProxySettings
+                Task.Run(() => {
+                    try
                     {
-                        HttpProxy = _proxyManager.CurrentProxy.HttpProxy,
-                        HttpsProxy = _proxyManager.CurrentProxy.HttpsProxy,
-                        Username = _proxyManager.CurrentProxy.Username,
-                        Password = _proxyManager.CurrentProxy.Password
-                    };
-                    
-                    newRecognizer.ConfigureProxy(proxySettings);
-                }
-                
-                // Set the language
-                newRecognizer.Language = _speechRecognizer.Language;
-                
-                // Replace the old recognizer with the new one
-                var oldRecognizer = _speechRecognizer;
-                
-                // Store recognizer preference in application settings
-                AppSettings.Instance.PreferredRecognizer = recognizerType;
-                AppSettings.Instance.Save();
-                
-                // Update the view model's recognizer reference
-                _speechRecognizer = newRecognizer;
-                
-                // Dispose the old recognizer
-                oldRecognizer.Dispose();
-                
-                SelectedRecognizerType = recognizerType;
-                StatusMessage = $"Распознаватель переключен на {recognizerType}";
-                
-                _logger.LogInformation("Switched to {RecognizerType} recognizer", recognizerType);
+                        ISpeechRecognizer? newRecognizer = null;
+                        
+                        if (recognizerType == "Microsoft")
+                        {
+                            var loggerFactory = ((App)Application.Current).ServiceProvider.GetRequiredService<ILoggerFactory>();
+                            var msLogger = loggerFactory.CreateLogger<MicrosoftSpeechRecognizer>();
+                            newRecognizer = new MicrosoftSpeechRecognizer(msLogger);
+                        }
+                        else
+                        {
+                            var loggerFactory = ((App)Application.Current).ServiceProvider.GetRequiredService<ILoggerFactory>();
+                            var pyLogger = loggerFactory.CreateLogger<PythonSpeechRecognizer>();
+                            var pythonModulesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PythonModules");
+                            newRecognizer = new PythonSpeechRecognizer(pyLogger, pythonModulesPath);
+                        }
+                        
+                        if (newRecognizer == null)
+                        {
+                            Application.Current.Dispatcher.Invoke(() => {
+                                StatusMessage = $"Не удалось создать распознаватель типа {recognizerType}";
+                                IsBusy = false;
+                            });
+                            return;
+                        }
+                        
+                        if (!string.IsNullOrEmpty(ApiKey))
+                        {
+                            newRecognizer.ConfigureWithApiKey(ApiKey);
+                        }
+                        
+                        if (_proxyManager.IsProxyActive && _proxyManager.CurrentProxy != null)
+                        {
+                            var proxySettings = new ProxySettings
+                            {
+                                HttpProxy = _proxyManager.CurrentProxy.HttpProxy,
+                                HttpsProxy = _proxyManager.CurrentProxy.HttpsProxy,
+                                Username = _proxyManager.CurrentProxy.Username,
+                                Password = _proxyManager.CurrentProxy.Password
+                            };
+                            
+                            newRecognizer.ConfigureProxy(proxySettings);
+                        }
+                        
+                        newRecognizer.Language = _speechRecognizer.Language;
+                        
+                        try
+                        {
+                            AppSettings.Instance.PreferredRecognizer = recognizerType;
+                            AppSettings.Instance.Save();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error saving recognizer settings");
+                        }
+                        
+                        var oldRecognizer = _speechRecognizer;
+                        
+                        Application.Current.Dispatcher.Invoke(() => {
+                            _speechRecognizer = newRecognizer;
+                            SelectedRecognizerType = recognizerType;
+                            StatusMessage = $"Распознаватель переключен на {recognizerType}";
+                            IsBusy = false;
+                        });
+                        
+                        try
+                        {
+                            oldRecognizer.Dispose();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error disposing old recognizer");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error in background recognizer switch task");
+                        
+                        Application.Current.Dispatcher.Invoke(() => {
+                            StatusMessage = $"Ошибка переключения распознавателя: {ex.Message}";
+                            IsBusy = false;
+                        });
+                    }
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error switching recognizer to {RecognizerType}", recognizerType);
-                StatusMessage = $"Ошибка переключения распознавателя: {ex.Message}";
-            }
-            finally
-            {
+                _logger.LogError(ex, "Error initializing recognizer switch");
+                StatusMessage = $"Ошибка инициализации переключения: {ex.Message}";
                 IsBusy = false;
             }
         }
